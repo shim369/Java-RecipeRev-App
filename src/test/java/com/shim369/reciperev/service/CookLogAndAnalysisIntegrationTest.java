@@ -114,7 +114,7 @@ class CookLogAndAnalysisIntegrationTest extends IntegrationTestBase {
     @Test
     @DisplayName("IT-ANA-01: CSV出力 → Python 実行 → JSON 読み込みまで通しで動く")
     void runAnalysisEndToEnd() throws Exception {
-        assumeThat(pandasAvailable()).as("python3 + pandas が必要").isTrue();
+        assumeThat(uvAvailable()).as("uv(analysis/ の Python 環境)が必要").isTrue();
         cookLogService.register(recipeId, 1, form(2, null));
         cookLogService.register(recipeId, 2, form(3, null));
         cookLogService.register(recipeId, 3, form(5, null));
@@ -134,10 +134,10 @@ class CookLogAndAnalysisIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("IT-ANA-02: Python を起動できなければ AnalysisException(画面にメッセージを出せる)")
-    void pythonNotFound() {
+    @DisplayName("IT-ANA-02: 分析コマンド(uv)を起動できなければ AnalysisException(画面にメッセージを出せる)")
+    void analysisCommandNotFound() {
         RecipeRevProperties broken = new RecipeRevProperties(properties.uploadDir(),
-                new RecipeRevProperties.Analysis("python-does-not-exist", properties.analysis().script(),
+                new RecipeRevProperties.Analysis(java.util.List.of("command-does-not-exist"), properties.analysis().script(),
                         properties.analysis().workDir(), 5));
         AnalysisService service = new AnalysisService(
                 new com.shim369.reciperev.repository.RecipeQueryRepository(
@@ -145,7 +145,7 @@ class CookLogAndAnalysisIntegrationTest extends IntegrationTestBase {
                 recipeService, new com.fasterxml.jackson.databind.ObjectMapper(), broken);
         assertThatThrownBy(() -> service.run(recipeId))
                 .isInstanceOf(AnalysisException.class)
-                .hasMessage("error.analysis.pythonNotFound");
+                .hasMessage("error.analysis.commandNotFound");
     }
 
     private long countUploads() throws Exception {
@@ -158,10 +158,13 @@ class CookLogAndAnalysisIntegrationTest extends IntegrationTestBase {
         }
     }
 
-    private static boolean pandasAvailable() {
+    /** アプリと同じコマンド(uv run ...)で pandas を import できるか。初回は環境作成が入るので長めに待つ */
+    private boolean uvAvailable() {
         try {
-            Process p = new ProcessBuilder("python3", "-c", "import pandas").start();
-            return p.waitFor(20, TimeUnit.SECONDS) && p.exitValue() == 0;
+            java.util.List<String> cmd = new java.util.ArrayList<>(properties.analysis().command());
+            cmd.addAll(java.util.List.of("-c", "import pandas"));
+            Process p = new ProcessBuilder(cmd).redirectErrorStream(true).start();
+            return p.waitFor(180, TimeUnit.SECONDS) && p.exitValue() == 0;
         } catch (Exception e) {
             return false;
         }

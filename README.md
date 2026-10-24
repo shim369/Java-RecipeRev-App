@@ -42,7 +42,7 @@ This project is also a portfolio piece. It reproduces the typical shape of an in
 | Backend | Java 21, Spring Boot 3.5, Spring MVC, Spring Data JPA, JdbcClient, Bean Validation, Flyway, MessageSource (i18n), Maven |
 | Frontend | Thymeleaf, vanilla JavaScript, Chart.js 4, HTML/CSS |
 | Database | MySQL 8.4 (via Docker Compose) |
-| Analysis | Python 3.9+ with pandas (`analysis/`) |
+| Analysis | Python 3.15.1 + pandas 3, managed by [uv](https://docs.astral.sh/uv/) (`analysis/pyproject.toml`, `uv.lock`) |
 | Testing | JUnit 5, AssertJ, Spring Boot Test, MockMvc, Testcontainers (MySQL), Python unittest |
 
 ## Architecture
@@ -61,7 +61,7 @@ Browser ──▶ controller ──▶ service ───────────
 - Transaction boundaries live in the service layer; version numbering uses `SELECT ... FOR UPDATE`
 - Business rules are enforced twice: in the domain/service code and by DB constraints
 - Input validation with Bean Validation; exceptions handled centrally via `@ControllerAdvice` (HTML) and `@RestControllerAdvice` (ProblemDetail JSON)
-- Python analysis is decoupled from the app: Java exports CSV, runs the script as a batch job, and reads JSON
+- Python analysis is decoupled from the app: Java exports CSV, runs the script as a batch job with `uv run`, and reads JSON
 - i18n: `CookieLocaleResolver` (default English, ignores `Accept-Language`) + `LocaleChangeInterceptor` (`?lang=ja` / `?lang=en`). Exceptions carry a message key and arguments (`MessageSourceResolvable`) instead of text, so they are rendered in the viewer's language
 
 ## Database
@@ -87,7 +87,7 @@ See [docs/04_er_diagram.md](docs/04_er_diagram.md) for the ER diagram (Mermaid),
 
 - JDK 21
 - Docker and Docker Compose
-- Python 3.9+ with pandas (only for trend analysis): `python3 -m pip install -r analysis/requirements.txt`
+- [uv](https://docs.astral.sh/uv/) (only for trend analysis). On the first analysis run, uv installs Python 3.15.1 and pandas into `analysis/.venv` from `uv.lock`. To prepare it in advance: `uv sync --project analysis`
 
 ### Run
 
@@ -117,7 +117,7 @@ Then open http://localhost:8080. Use the button at the top right to switch betwe
 
 ```bash
 ./mvnw test                                          # 77 Java tests (Docker required for Testcontainers)
-python3 -m unittest discover -s analysis/tests -v    # 10 Python tests
+uv run --project analysis python -m unittest discover -s analysis/tests -v    # 10 Python tests
 ```
 
 ## Project Structure
@@ -125,7 +125,7 @@ python3 -m unittest discover -s analysis/tests -v    # 10 Python tests
 ```
 Java-RecipeRev-App/
 ├── docs/                    # requirements, screens, screen flow, ER diagram, test spec, screenshots
-├── analysis/                # Python trend analysis (analyze.py, tests, requirements.txt)
+├── analysis/                # Python trend analysis (uv project: analyze.py, tests, pyproject.toml, uv.lock)
 ├── src/
 │   ├── main/java/com/shim369/reciperev/
 │   │   ├── controller/      # MVC controllers, JSON API, exception handlers

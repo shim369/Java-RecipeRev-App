@@ -4,26 +4,38 @@ This script computes the correlation between ingredient amounts and ratings for 
 The Spring Boot app runs it as a batch job, and the two sides talk only through files.
 
 ```
-Spring Boot ──(1) CSV──▶ analyze.py ──(2) JSON──▶ Spring Boot (SCR-09)
-             analysis/output/recipe_{id}.csv     analysis/output/recipe_{id}.json
+Spring Boot ──(1) CSV──▶ uv run … analyze.py ──(2) JSON──▶ Spring Boot (SCR-09)
+             analysis/output/recipe_{id}.csv           analysis/output/recipe_{id}.json
 ```
 
-## Setup
+## Environment (uv)
+
+This directory is a [uv](https://docs.astral.sh/uv/) project:
+
+| File | Purpose |
+|---|---|
+| `pyproject.toml` | Python requirement (`>=3.15`) and dependencies (`pandas>=3.0`) |
+| `.python-version` | Pinned interpreter: `3.15.1` |
+| `uv.lock` | Exact versions of every package (commit this file) |
+
+You only need uv. Python 3.15.1 and pandas are installed into `analysis/.venv` automatically on the first `uv run`.
+The app runs uv with `--frozen`, so it uses `uv.lock` exactly as committed and never changes it.
 
 ```bash
-python3 -m pip install -r analysis/requirements.txt   # pandas (Python 3.9+)
+uv sync --project analysis          # optional: prepare analysis/.venv in advance
+uv add --project analysis <package> # add a dependency (updates pyproject.toml and uv.lock)
 ```
 
-## Run manually
+## Run manually (from the repository root)
 
 ```bash
-python3 analysis/analyze.py analysis/output/recipe_1.csv analysis/output/recipe_1.json --recipe-id 1
+uv run --project analysis python analysis/analyze.py analysis/output/recipe_1.csv analysis/output/recipe_1.json --recipe-id 1
 ```
 
 ## Test
 
 ```bash
-python3 -m unittest discover -s analysis/tests -v
+uv run --project analysis python -m unittest discover -s analysis/tests -v
 ```
 
 ## Input CSV
@@ -45,11 +57,11 @@ python3 -m unittest discover -s analysis/tests -v
   "versionCount": 3,
   "minSamples": 3,
   "results": [
-    { "ingredient": "砂糖", "unit": "g", "samples": 3, "r": 0.945,
+    { "ingredient": "Sugar", "unit": "g", "samples": 3, "r": 0.945,
       "strength": "STRONG", "direction": "POSITIVE", "minAmount": 30.0, "maxAmount": 50.0 }
   ],
   "insufficient": [
-    { "ingredient": "卵", "unit": "個", "samples": 3, "reason": "NO_AMOUNT_VARIATION" }
+    { "ingredient": "Egg", "unit": "pcs", "samples": 3, "reason": "NO_AMOUNT_VARIATION" }
   ]
 }
 ```

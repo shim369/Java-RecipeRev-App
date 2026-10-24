@@ -58,7 +58,7 @@ RecipeRev は、この業務システムの型を「家庭の料理レシピ」�
 | 実行形態 | ローカルPC上で起動するWebアプリ |
 | サーバ | Java 21 / Spring Boot 3.x(組み込みTomcat) |
 | DB | MySQL 8(docker compose で起動) |
-| 分析 | Python 3.9 以上 + pandas |
+| 分析 | Python 3.15.1 + pandas 3(uv で管理) |
 | ブラウザ | Google Chrome / Safari / Firefox の最新版(PC幅を主対象、スマホ幅でも崩れない程度) |
 | 言語 | 英語(既定)・日本語 |
 
@@ -166,7 +166,7 @@ stateDiagram-v2
 
 #### F-11 傾向分析
 1. Java側が、分析対象の表を CSV に書き出す(1行 = 版 × 材料。版番号・材料名・単位・分量・その版の平均評価)
-2. `ProcessBuilder` で `python3 analysis/analyze.py <入力CSV> <出力JSON>` を実行する
+2. `ProcessBuilder` で `uv run --project analysis python analysis/analyze.py <入力CSV> <出力JSON>` を実行する(Python と pandas のバージョンは uv.lock で固定する)
 3. Python側は「材料名 + 単位」ごとにピアソン相関係数 r を計算し、JSON に書き出す
 4. Java側が JSON を読み込んで画面に表示する(例: 「砂糖(g)が多い版ほど評価が高い傾向 r=0.82」)
 

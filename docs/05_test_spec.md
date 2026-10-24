@@ -10,7 +10,7 @@
 |---|---|---|---|---|
 | 単体テスト(UT) | 差分ロジック・ドメインモデル・入力チェック・写真保存・CSV出力 | JUnit 5 + AssertJ | 使わない | `./mvnw test` |
 | 結合テスト(IT) | サービス〜SQL〜DB制約、画面(MockMvc)、Python連携 | Spring Boot Test + Testcontainers | MySQL 8.4(Docker) | `./mvnw test` |
-| Python 単体テスト(PY) | `analysis/analyze.py` | unittest + pandas | 使わない | `python3 -m unittest discover -s analysis/tests` |
+| Python 単体テスト(PY) | `analysis/analyze.py` | unittest + pandas(Python 3.15.1、uv) | 使わない | `uv run --project analysis python -m unittest discover -s analysis/tests` |
 | 手動確認(MT) | 画面の見た目・JavaScript・ブラウザ操作 | Chrome | docker compose の MySQL | 3章の手順 |
 
 - **結合テストは H2 ではなく本物の MySQL で行う。** 生成列による一意制約、CHECK 制約、`SELECT ... FOR UPDATE`、`<=>`、CTE など MySQL 固有の動きを確かめたいため。
@@ -123,7 +123,7 @@
 | IT-LOG-03 | 写真の一連の流れ | 保存 → ログ削除のコミット後にファイルも消える | F-09 |
 | IT-LOG-04 | **ロールバック時の写真** | 登録が失敗(存在しない版)したら、保存した写真も消える(TransactionSynchronization) | F-09 |
 | IT-LOG-05 | 他レシピのログ | 削除できない(NotFound) | 5章 セキュリティ |
-| IT-ANA-01 | **Python 連携の通し** | CSV → `python3 analyze.py` → JSON。砂糖は STRONG / POSITIVE、卵は NO_AMOUNT_VARIATION。python3 + pandas がない環境ではスキップする | F-11 |
+| IT-ANA-01 | **Python 連携の通し** | CSV → `uv run ... analyze.py` → JSON。砂糖は STRONG / POSITIVE、卵は NO_AMOUNT_VARIATION。uv がない環境ではスキップする | F-11 |
 | IT-ANA-02 | Python が起動できない | 「Python を起動できませんでした」という AnalysisException | F-11 |
 
 ### 2.8 画面 — `WebIntegrationTest`(IT-WEB、MockMvc)
@@ -183,4 +183,4 @@
 | MT-07 | 画面幅 375px | 横スクロールが出ない。材料の入力欄がカード形式に組み替わる | OK(375px 幅の iframe でスクリーンショット) |
 | MT-08 | 6MB のファイルを送る | 「ファイルが大きすぎます」のエラー画面(400) | OK(curl で 400 を確認) |
 | MT-09 | 全画面を英語・日本語で開く | すべて 200(存在しない ID は 404)。英語の画面に日本語が残っていない(切り替えボタンと入力データを除く) | OK(curl で全11画面を確認) |
-| MT-10 | 右上の言語ボタンを押す | 同じ画面のまま言語が切り替わり、別の画面に移っても言語が保たれる | 未実施 |
+| MT-10 | 右上の言語ボタンを押す | 同じ画面のまま言語が切り替わり、別の画面に移っても言語が保たれる | OK(Chrome で実際にクリック。版比較画面で「日本語」→ from/to を保ったまま日本語に、パンくずで詳細へ移っても日本語(グラフの軸も「第1版」)、「English」→ 英語に戻り、一覧でも英語のまま) |

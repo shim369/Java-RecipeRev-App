@@ -12,6 +12,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -23,7 +24,7 @@ import org.springframework.stereotype.Service;
  * Python による傾向分析(F-11)の連携。Java と Python はファイルだけでつながる(疎結合)。
  * <pre>
  *   ① DB → CSV(recipe_{id}.csv)   … Java
- *   ② python3 analyze.py csv json   … ProcessBuilder でバッチ実行
+ *   ② uv run ... analyze.py csv json … ProcessBuilder でバッチ実行(Python 環境は uv が管理)
  *   ③ JSON(recipe_{id}.json)→ 画面 … Java
  * </pre>
  * Python を Web サーバとして常駐させないので、構成が単純で、Python 側は単体でもテスト・実行できる。
@@ -93,11 +94,13 @@ public class AnalysisService {
 
     private void execute(long recipeId) throws IOException {
         Path logFile = config.workDir().resolve("recipe_" + recipeId + ".log");
-        // コマンドは配列で渡す(シェルを経由しないので、引数に記号が入ってもコマンドインジェクションにならない)
-        ProcessBuilder pb = new ProcessBuilder(
-                config.pythonCommand(), config.script().toString(),
+        // コマンドはリストで渡す(シェルを経由しないので、引数に記号が入ってもコマンドインジェクションにならない)
+        // 例: uv run --project analysis --frozen --quiet python analysis/analyze.py in.csv out.json --recipe-id 1
+        List<String> command = new ArrayList<>(config.command());
+        command.addAll(List.of(config.script().toString(),
                 csvPath(recipeId).toString(), jsonPath(recipeId).toString(),
-                "--recipe-id", String.valueOf(recipeId))
+                "--recipe-id", String.valueOf(recipeId)));
+        ProcessBuilder pb = new ProcessBuilder(command)
                 .redirectErrorStream(true)
                 // 出力はファイルへ。パイプのまま読まずに待つと、出力が多いときにバッファが詰まって止まることがある
                 .redirectOutput(logFile.toFile());
@@ -110,7 +113,7 @@ public class AnalysisService {
         try {
             process = pb.start();
         } catch (IOException e) {
-            throw new AnalysisException(e, "error.analysis.pythonNotFound", config.pythonCommand());
+            throw new AnalysisException(e, "error.analysis.commandNotFound", config.command().get(0));
         }
         try {
             if (!process.waitFor(config.timeoutSeconds(), TimeUnit.SECONDS)) {
