@@ -1,5 +1,6 @@
 package com.shim369.reciperev.repository;
 
+import com.shim369.reciperev.domain.ChangeType;
 import com.shim369.reciperev.dto.RecipeSummary;
 import com.shim369.reciperev.dto.VersionSummary;
 import com.shim369.reciperev.domain.VersionStatus;
@@ -75,5 +76,38 @@ public class RecipeQueryRepository {
                 .query(BigDecimal.class)
                 .optional()
                 .orElse(null);
+    }
+
+    /**
+     * 2つの版の材料の差分をSQLで求める(04_er_diagram.md 5.1)。
+     * 画面表示は RecipeDiffService(Java)で計算するが、結合テストで「SQLとJavaの結果が一致するか」を確かめるのに使う。
+     * MySQL には FULL OUTER JOIN がないため、両方の版の材料名一覧に LEFT JOIN する。
+     * {@code <=>} は NULL 同士も「等しい」と判定する比較演算子。
+     */
+    public List<IngredientDiffRow> findIngredientDiff(long fromVersionId, long toVersionId) {
+        return jdbc.sql("""
+                SELECT n.name,
+                       CASE
+                         WHEN a.id IS NULL THEN 'ADDED'
+                         WHEN b.id IS NULL THEN 'REMOVED'
+                         WHEN NOT (a.amount <=> b.amount)
+                           OR NOT (a.unit   <=> b.unit)
+                           OR NOT (a.note   <=> b.note) THEN 'CHANGED'
+                         ELSE 'UNCHANGED'
+                       END AS change_type
+                  FROM (SELECT DISTINCT name
+                          FROM version_ingredients
+                         WHERE version_id IN (:fromId, :toId)) n
+                  LEFT JOIN version_ingredients a ON a.version_id = :fromId AND a.name = n.name
+                  LEFT JOIN version_ingredients b ON b.version_id = :toId   AND b.name = n.name
+                 ORDER BY COALESCE(b.sort_order, a.sort_order), b.id IS NOT NULL
+                """)
+                .param("fromId", fromVersionId)
+                .param("toId", toVersionId)
+                .query((rs, i) -> new IngredientDiffRow(rs.getString("name"), ChangeType.valueOf(rs.getString("change_type"))))
+                .list();
+    }
+
+    public record IngredientDiffRow(String name, ChangeType type) {
     }
 }
