@@ -50,6 +50,14 @@
     </section>
 
     <section class="card">
+        <h2>評価推移</h2>
+        <p class="hint">版ごとの平均評価です。金色の点が決定版、線が途切れている版は調理ログがありません。</p>
+        <div class="chart-box">
+            <canvas id="rating-chart" th:attr="data-url=@{/api/recipes/{id}/rating-trend(id=${recipe.id})}" aria-label="版ごとの平均評価の折れ線グラフ" role="img"></canvas>
+        </div>
+    </section>
+
+    <section class="card">
         <h2>版履歴</h2>
         <!--/* 比較する2つの版をラジオボタンで選び、GET で SCR-07 に送る */-->
         <form th:action="@{/recipes/{id}/diff(id=${recipe.id})}" method="get">
@@ -79,6 +87,8 @@
     </section>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script th:src="@{/js/rating-chart.js}"></script>
 <script th:src="@{/js/confirm.js}"></script>
 </body>
 </html>
