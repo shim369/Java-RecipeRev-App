@@ -145,7 +145,7 @@ class CookLogAndAnalysisIntegrationTest extends IntegrationTestBase {
                 recipeService, new com.fasterxml.jackson.databind.ObjectMapper(), broken);
         assertThatThrownBy(() -> service.run(recipeId))
                 .isInstanceOf(AnalysisException.class)
-                .hasMessageContaining("Python を起動できませんでした");
+                .hasMessage("error.analysis.pythonNotFound");
     }
 
     private long countUploads() throws Exception {

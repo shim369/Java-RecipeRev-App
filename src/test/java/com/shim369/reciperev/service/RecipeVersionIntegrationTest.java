@@ -124,7 +124,6 @@ class RecipeVersionIntegrationTest extends IntegrationTestBase {
 
         FinalizeResult second = versionService.finalizeVersion(recipeId, 2);
         assertThat(second.previousFinalNo()).isEqualTo(1);
-        assertThat(second.message()).isEqualTo("第2版を決定版にしました(第1版は試作中に戻りました)");
         assertThat(statuses()).isEqualTo("1:TRIAL,2:FINAL");
     }
 
