@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<!--/* 共通部品。各画面から th:replace="~{fragments/layout :: head('タイトル')}" のように呼び出す(PHPの include に相当) */-->
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' | RecipeRev'">RecipeRev</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+<header th:fragment="header" class="site-header">
+    <div class="container">
+        <a class="logo" th:href="@{/recipes}">Recipe<span>Rev</span></a>
+        <span class="tagline">レシピのバージョン管理</span>
+    </div>
+</header>
+
+<!--/* 更新後のフラッシュメッセージ(RedirectAttributes#addFlashAttribute で渡した値) */-->
+<div th:fragment="flash">
+    <div class="flash flash-success" th:if="${message}" th:text="${message}" role="status"></div>
+    <div class="flash flash-error" th:if="${errorFlash}" th:text="${errorFlash}" role="alert"></div>
+</div>
+
+<footer th:fragment="footer" class="site-footer">
+    <div class="container">RecipeRev — Recipe + Revision</div>
+</footer>
+
+<!--/* 状態バッジ: 下書き=灰、試作中=青、決定版=金 */-->
+<span th:fragment="status(status)" class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(status.name())}"
+      th:text="${status.label}">下書き</span>
+
+</body>
+</html>

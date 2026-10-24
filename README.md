@@ -108,7 +108,7 @@ Java-RecipeRev-App/
 ## Roadmap
 
 - [x] Phase 1: Requirements, screen list, screen transitions, ER diagram (`docs/`)
-- [ ] Phase 2: Project setup, Docker Compose, recipe CRUD
+- [x] Phase 2: Project setup, Docker Compose, recipe CRUD
 - [ ] Phase 3: Versioning, diff view, approval flow
 - [ ] Phase 4: Cooking log (with photo), rating chart
 - [ ] Phase 5: Python trend analysis integration
