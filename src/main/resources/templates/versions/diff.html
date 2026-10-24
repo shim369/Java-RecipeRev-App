@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head th:replace="~{fragments/layout :: head(${view.recipe.name} + ' 版比較')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container" th:with="recipe=${view.recipe}">
+    <nav class="breadcrumb">
+        <a th:href="@{/recipes}">レシピ一覧</a> &rsaquo;
+        <a th:href="@{/recipes/{id}(id=${recipe.id})}" th:text="${recipe.name}">カレー</a> &rsaquo; 版比較
+    </nav>
+    <h1>版比較</h1>
+
+    <!--/* GET フォーム: 比較条件を URL に残すので、ブックマークや共有ができる */-->
+    <form class="card compare-form" th:action="@{/recipes/{id}/diff(id=${recipe.id})}" method="get">
+        <div>
+            <label for="from">比較元</label>
+            <select id="from" name="from">
+                <option th:each="s : ${view.allVersions}" th:value="${s.versionNo}" th:selected="${s.versionNo == view.from.versionNo}"
+                        th:text="'第' + ${s.versionNo} + '版(' + ${s.status.label} + ')'">第1版</option>
+            </select>
+        </div>
+        <div>
+            <label for="to">比較先</label>
+            <select id="to" name="to">
+                <option th:each="s : ${view.allVersions}" th:value="${s.versionNo}" th:selected="${s.versionNo == view.to.versionNo}"
+                        th:text="'第' + ${s.versionNo} + '版(' + ${s.status.label} + ')'">第2版</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">比較</button>
+    </form>
+
+    <section class="card">
+        <h2>
+            <a th:href="@{/recipes/{id}/versions/{no}(id=${recipe.id}, no=${view.from.versionNo})}" th:text="'第' + ${view.from.versionNo} + '版'">第1版</a>
+            <span th:replace="~{fragments/layout :: status(${view.from.status})}"></span>
+            <span class="muted">→</span>
+            <a th:href="@{/recipes/{id}/versions/{no}(id=${recipe.id}, no=${view.to.versionNo})}" th:text="'第' + ${view.to.versionNo} + '版'">第2版</a>
+            <span th:replace="~{fragments/layout :: status(${view.to.status})}"></span>
+        </h2>
+        <p class="muted">
+            平均評価:
+            <span th:text="${view.from.averageRating} ? ${#numbers.formatDecimal(view.from.averageRating, 1, 2)} : '—'">3.00</span>
+            →
+            <strong th:text="${view.to.averageRating} ? ${#numbers.formatDecimal(view.to.averageRating, 1, 2)} : '—'">4.50</strong>
+        </p>
+        <div class="diff-summary">
+            <span class="diff-added" th:text="'+ 追加 ' + ${view.added()}">+ 追加 1</span>
+            <span class="diff-removed" th:text="'− 削除 ' + ${view.removed()}">− 削除 0</span>
+            <span class="diff-changed" th:text="'~ 変更 ' + ${view.changed()}">~ 変更 2</span>
+        </div>
+        <p th:unless="${view.diff.hasChanges()}" class="muted">材料・手順に違いはありません。</p>
+    </section>
+
+    <section class="card">
+        <h2>材料</h2>
+        <div class="table-scroll">
+            <table class="table">
+                <thead>
+                <tr><th></th><th>材料名</th><th class="num" th:text="'第' + ${view.from.versionNo} + '版'">比較元</th><th class="num" th:text="'第' + ${view.to.versionNo} + '版'">比較先</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="d : ${view.diff.ingredients}" th:class="${d.type().cssClass()}" th:title="${d.type().label}">
+                    <td class="diff-mark" th:text="${d.type().mark}">~</td>
+                    <td th:text="${d.name()}">砂糖</td>
+                    <td class="num"><span class="diff-old" th:if="${d.before()}" th:text="${d.before().amountLabel()}">30 g</span></td>
+                    <td class="num"><span th:if="${d.after()}" th:text="${d.after().amountLabel()}">40 g</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>手順</h2>
+        <ul class="diff-steps">
+            <li th:each="d : ${view.diff.steps}" th:class="${d.type().cssClass()}" th:title="${d.type().label}">
+                <span class="diff-mark" th:text="${d.type().mark}">~</span>
+                <span th:if="${d.type().name() == 'CHANGED'}">
+                    <span class="diff-old" th:text="${d.before()}">弱火で10分</span><br>
+                    <span th:text="${d.after()}">弱火で15分</span>
+                </span>
+                <span th:unless="${d.type().name() == 'CHANGED'}" th:classappend="${d.type().name() == 'REMOVED'} ? 'diff-old'"
+                      th:text="${d.after()} ?: ${d.before()}">玉ねぎを炒める</span>
+            </li>
+        </ul>
+    </section>
+
+    <a class="btn" th:href="@{/recipes/{id}(id=${recipe.id})}">戻る</a>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head th:replace="~{fragments/layout :: head(${detail.recipe.name} + ' 第' + ${detail.version.versionNo} + '版')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container" th:with="recipe=${detail.recipe}, v=${detail.version}">
+    <nav class="breadcrumb">
+        <a th:href="@{/recipes}">レシピ一覧</a> &rsaquo;
+        <a th:href="@{/recipes/{id}(id=${recipe.id})}" th:text="${recipe.name}">カレー</a> &rsaquo;
+        <span th:text="'第' + ${v.versionNo} + '版'">第2版</span>
+    </nav>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="page-head">
+        <div>
+            <h1>
+                <span th:text="${recipe.name}">カレー</span>
+                <span th:text="'第' + ${v.versionNo} + '版'">第2版</span>
+                <span th:replace="~{fragments/layout :: status(${v.status})}"></span>
+            </h1>
+            <p class="muted">
+                作成: <span th:text="${#temporals.format(v.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
+                <th:block th:if="${v.basedOn}"> / 派生元:
+                    <a th:href="@{/recipes/{id}/versions/{no}(id=${recipe.id}, no=${v.basedOn.versionNo})}"
+                       th:text="'第' + ${v.basedOn.versionNo} + '版'">第1版</a>
+                </th:block>
+                / 平均評価: <strong th:text="${detail.averageRating} ? ${#numbers.formatDecimal(detail.averageRating, 1, 2)} : '—'">4.00</strong>
+            </p>
+            <p th:if="${v.changeNote}">変更メモ: <span th:text="${v.changeNote}">砂糖を増やした</span></p>
+        </div>
+    </div>
+
+    <!--/* 状態によってボタンを出し分ける。サーバ側でも同じルールを検査している(画面を通らない送信への対策) */-->
+    <div class="card actions">
+        <a class="btn" th:href="@{/recipes/{id}/versions/new(id=${recipe.id}, base=${v.versionNo})}">この版を元に編集</a>
+        <a class="btn" th:if="${detail.previousNo()}"
+           th:href="@{/recipes/{id}/diff(id=${recipe.id}, from=${detail.previousNo()}, to=${v.versionNo})}">1つ前の版と比較</a>
+        <form th:if="${v.isDraft()}" th:action="@{/recipes/{id}/versions/{no}/start-trial(id=${recipe.id}, no=${v.versionNo})}" method="post">
+            <button type="submit" class="btn">試作を開始</button>
+        </form>
+        <form th:unless="${v.isFinal()}" th:action="@{/recipes/{id}/versions/{no}/finalize(id=${recipe.id}, no=${v.versionNo})}" method="post"
+              th:attr="data-confirm=${detail.currentFinalNo} ? '第' + ${v.versionNo} + '版を決定版にします。現在の決定版 第' + ${detail.currentFinalNo} + '版は試作中に戻ります。よろしいですか?' : '第' + ${v.versionNo} + '版を決定版にします。よろしいですか?'">
+            <button type="submit" class="btn btn-primary">この版を決定版にする</button>
+        </form>
+    </div>
+
+    <section class="card two-col">
+        <div>
+            <h2>材料</h2>
+            <table class="table table-compact">
+                <tbody>
+                <tr th:each="ing : ${v.ingredients}">
+                    <td th:text="${ing.name}">砂糖</td>
+                    <td class="num" th:text="${ing.toLine().amountLabel()}">30 g</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <h2>手順</h2>
+            <ol class="steps">
+                <li th:each="step : ${v.stepList}" th:text="${step}">炒める</li>
+            </ol>
+        </div>
+    </section>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/confirm.js}"></script>
+</body>
+</html>

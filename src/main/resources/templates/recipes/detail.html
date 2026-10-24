@@ -13,6 +13,7 @@
             <p class="description" th:if="${recipe.description}" th:text="${recipe.description}">説明</p>
         </div>
         <div class="actions">
+            <a class="btn btn-primary" th:href="@{/recipes/{id}/versions/new(id=${recipe.id})}">最新版を元に編集</a>
             <a class="btn" th:href="@{/recipes/{id}/edit(id=${recipe.id})}">基本情報を編集</a>
             <form th:action="@{/recipes/{id}/delete(id=${recipe.id})}" method="post"
                   data-confirm="このレシピを削除しますか?(版と調理ログの記録は残ります)">
@@ -23,8 +24,8 @@
 
     <section class="card">
         <h2>
-            <span th:text="${rep.final} ? '決定版' : '最新版'">決定版</span>:
-            <span th:text="'第' + ${rep.versionNo} + '版'">第2版</span>
+            <span th:text="${rep.isFinal()} ? '決定版' : '最新版'">決定版</span>:
+            <a th:href="@{/recipes/{id}/versions/{no}(id=${recipe.id}, no=${rep.versionNo})}" th:text="'第' + ${rep.versionNo} + '版'">第2版</a>
             <span th:replace="~{fragments/layout :: status(${rep.status})}"></span>
         </h2>
         <div class="two-col">
@@ -50,21 +51,31 @@
 
     <section class="card">
         <h2>版履歴</h2>
-        <table class="table">
-            <thead>
-            <tr><th>版</th><th>状態</th><th>変更メモ</th><th>作成日時</th><th class="num">平均評価</th><th class="num">調理回数</th></tr>
-            </thead>
-            <tbody>
-            <tr th:each="v : ${detail.versions}">
-                <td th:text="'第' + ${v.versionNo} + '版'">第1版</td>
-                <td><span th:replace="~{fragments/layout :: status(${v.status})}"></span></td>
-                <td th:text="${v.changeNote} ?: '—'">砂糖を増やした</td>
-                <td th:text="${#temporals.format(v.createdAt, 'yyyy-MM-dd HH:mm')}">2026-10-24</td>
-                <td class="num" th:text="${v.averageRating} ? ${#numbers.formatDecimal(v.averageRating, 1, 2)} : '—'">4.00</td>
-                <td class="num" th:text="${v.logCount}">2</td>
-            </tr>
-            </tbody>
-        </table>
+        <!--/* 比較する2つの版をラジオボタンで選び、GET で SCR-07 に送る */-->
+        <form th:action="@{/recipes/{id}/diff(id=${recipe.id})}" method="get">
+            <div class="table-scroll">
+                <table class="table">
+                    <thead>
+                    <tr><th>比較元</th><th>比較先</th><th>版</th><th>状態</th><th>変更メモ</th><th>作成日時</th><th class="num">平均評価</th><th class="num">調理回数</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="v, stat : ${detail.versions}">
+                        <td><input type="radio" name="from" th:value="${v.versionNo}" th:checked="${stat.size > 1 and stat.index == stat.size - 2}" th:attr="aria-label='比較元 第' + ${v.versionNo} + '版'"></td>
+                        <td><input type="radio" name="to" th:value="${v.versionNo}" th:checked="${stat.last}" th:attr="aria-label='比較先 第' + ${v.versionNo} + '版'"></td>
+                        <td><a th:href="@{/recipes/{id}/versions/{no}(id=${recipe.id}, no=${v.versionNo})}" th:text="'第' + ${v.versionNo} + '版'">第1版</a></td>
+                        <td><span th:replace="~{fragments/layout :: status(${v.status})}"></span></td>
+                        <td th:text="${v.changeNote} ?: '—'">砂糖を増やした</td>
+                        <td th:text="${#temporals.format(v.createdAt, 'yyyy-MM-dd HH:mm')}">2026-10-24</td>
+                        <td class="num" th:text="${v.averageRating} ? ${#numbers.formatDecimal(v.averageRating, 1, 2)} : '—'">4.00</td>
+                        <td class="num" th:text="${v.logCount}">2</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="actions" th:if="${detail.versions.size() > 1}" style="margin-top:12px">
+                <button type="submit" class="btn">選んだ2つの版を比較</button>
+            </div>
+        </form>
     </section>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
