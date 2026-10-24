@@ -104,6 +104,14 @@ textarea { resize: vertical; }
 .ingredient-table td { padding: 4px; vertical-align: top; }
 .input-amount { max-width: 110px; }
 .input-unit { max-width: 90px; }
+/* スマホ幅では材料1行を「材料名 / 分量・単位 / メモ・削除」のカードに組み替え、横スクロールをなくす */
+@media (max-width: 720px) {
+  .ingredient-table thead { display: none; }
+  .ingredient-table tr { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .ingredient-table td { padding: 0; }
+  .ingredient-table td:first-child { grid-column: 1 / -1; }
+  .input-amount, .input-unit { max-width: none; }
+}
 
 /* ----- flash ----- */
 .flash { padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; }

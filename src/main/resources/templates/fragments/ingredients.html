@@ -23,7 +23,7 @@
                     <p class="field-error" th:if="${#fields.hasErrors('ingredients[__${stat.index}__].name')}" th:errors="*{ingredients[__${stat.index}__].name}"></p>
                 </td>
                 <td>
-                    <input type="number" th:field="*{ingredients[__${stat.index}__].amount}" step="0.01" min="0" max="99999.99" class="input-amount" aria-label="分量">
+                    <input type="number" th:field="*{ingredients[__${stat.index}__].amount}" step="0.01" min="0" max="99999.99" class="input-amount" placeholder="分量" aria-label="分量">
                     <p class="field-error" th:if="${#fields.hasErrors('ingredients[__${stat.index}__].amount')}" th:errors="*{ingredients[__${stat.index}__].amount}"></p>
                 </td>
                 <td><input type="text" th:field="*{ingredients[__${stat.index}__].unit}" maxlength="20" placeholder="g" class="input-unit" aria-label="単位"></td>
@@ -36,7 +36,7 @@
         <template data-ingredient-template>
             <tr data-ingredient-row>
                 <td><input type="text" name="ingredients[__INDEX__].name" maxlength="50" placeholder="砂糖" aria-label="材料名"></td>
-                <td><input type="number" name="ingredients[__INDEX__].amount" step="0.01" min="0" max="99999.99" class="input-amount" aria-label="分量"></td>
+                <td><input type="number" name="ingredients[__INDEX__].amount" step="0.01" min="0" max="99999.99" class="input-amount" placeholder="分量" aria-label="分量"></td>
                 <td><input type="text" name="ingredients[__INDEX__].unit" maxlength="20" placeholder="g" class="input-unit" aria-label="単位"></td>
                 <td><input type="text" name="ingredients[__INDEX__].note" maxlength="100" placeholder="少々 など" aria-label="メモ"></td>
                 <td><button type="button" class="btn btn-small btn-ghost" data-remove-row>削除</button></td>

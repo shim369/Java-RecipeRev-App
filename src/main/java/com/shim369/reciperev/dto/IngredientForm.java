@@ -39,8 +39,13 @@ public class IngredientForm {
         this.note = note;
     }
 
+    /**
+     * 既存の版の材料をフォームの初期値にする。DB の DECIMAL(8,2) は 120.00 のように返るので、
+     * 入力欄には 120 と表示されるよう末尾の 0 を落とす(stripTrailingZeros だけだと 1E+2 表記になるため toPlainString を経由)。
+     */
     public static IngredientForm from(IngredientLine line) {
-        return new IngredientForm(line.name(), line.amount(), line.unit(), line.note());
+        BigDecimal amount = line.amount() == null ? null : new BigDecimal(line.amount().stripTrailingZeros().toPlainString());
+        return new IngredientForm(line.name(), amount, line.unit(), line.note());
     }
 
     public IngredientLine toLine() {

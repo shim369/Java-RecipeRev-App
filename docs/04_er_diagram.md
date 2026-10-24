@@ -261,11 +261,16 @@ SELECT r.version_no, k.name, k.unit,
          ON i.version_id = r.version_id
         AND i.name = k.name
         AND i.unit <=> k.unit
- WHERE i.id IS NULL OR i.amount IS NOT NULL  -- 材料はあるが分量が空欄(少々など)の行は除く
+ WHERE NOT EXISTS (                         -- 分量が空欄(少々など)で入っている版は、0 ではなく計算から除く
+         SELECT 1 FROM version_ingredients x
+          WHERE x.version_id = r.version_id
+            AND x.name = k.name
+            AND x.amount IS NULL)
  ORDER BY k.name, k.unit, r.version_no;
 ```
 
 - 単位が違う同じ材料(例: 砂糖 g と 砂糖 大さじ)は別の材料として扱う(単位の換算はスコープ外)
+- 「少々」のように分量が空欄の行は単位も空欄のことが多く、`i.unit <=> k.unit` では一致しない。そのため、LEFT JOIN の結果ではなく、`NOT EXISTS` で「同じ名前の材料が分量空欄で入っているか」を調べて除外する(LEFT JOIN だけで判定すると、誤って 0 として扱ってしまう)
 - 複雑な集計なので、JPA ではなく `JdbcTemplate` で実行する
 
 ---
