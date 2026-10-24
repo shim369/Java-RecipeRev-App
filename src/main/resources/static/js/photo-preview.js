@@ -1,7 +1,7 @@
 /*
  * RecipeRev: 写真を選んだら、送信前にプレビューを表示する。
  * URL.createObjectURL はファイルをサーバに送らずにブラウザ内で表示するための一時URLを作る。
- * サイズ超過もここで先に知らせる(最終的な検査はサーバ側で行う)。
+ * サイズ超過もここで先に知らせる(最終的な検査はサーバ側で行う)。警告文は言語ごとに data-too-large 属性で受け取る。
  */
 (function () {
   'use strict';
@@ -18,7 +18,7 @@
       return;
     }
     if (file.size > MAX_BYTES) {
-      window.alert('写真は5MB以下のファイルを選んでください');
+      window.alert(input.dataset.tooLarge);
       input.value = '';
       preview.style.display = 'none';
       return;

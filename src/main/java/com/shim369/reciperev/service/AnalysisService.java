@@ -55,7 +55,7 @@ public class AnalysisService {
         try {
             return Optional.of(objectMapper.readValue(json.toFile(), AnalysisResult.class));
         } catch (IOException e) {
-            throw new AnalysisException("分析結果のJSONを読み込めませんでした", e);
+            throw new AnalysisException(e, "error.analysis.readJson");
         }
     }
 
@@ -82,10 +82,10 @@ public class AnalysisService {
             writeCsv(csvPath(recipeId), rows);
             execute(recipeId);
         } catch (IOException e) {
-            throw new AnalysisException("分析用ファイルの作成に失敗しました", e);
+            throw new AnalysisException(e, "error.analysis.writeFiles");
         }
         AnalysisResult result = loadLatest(recipeId)
-                .orElseThrow(() -> new AnalysisException("分析結果のJSONが出力されませんでした"));
+                .orElseThrow(() -> new AnalysisException("error.analysis.noJson"));
         log.info("Analysis finished: recipeId={}, versions={}, correlations={}",
                 recipeId, result.versionCount(), result.results().size());
         return result;
@@ -110,23 +110,22 @@ public class AnalysisService {
         try {
             process = pb.start();
         } catch (IOException e) {
-            throw new AnalysisException("Python を起動できませんでした(" + config.pythonCommand()
-                    + ")。Python 3 がインストールされているか確認してください", e);
+            throw new AnalysisException(e, "error.analysis.pythonNotFound", config.pythonCommand());
         }
         try {
             if (!process.waitFor(config.timeoutSeconds(), TimeUnit.SECONDS)) {
                 process.destroyForcibly();
-                throw new AnalysisException("分析が " + config.timeoutSeconds() + " 秒以内に終わりませんでした");
+                throw new AnalysisException("error.analysis.timeout", config.timeoutSeconds());
             }
         } catch (InterruptedException e) {
             process.destroyForcibly();
             Thread.currentThread().interrupt(); // 割り込みフラグを戻しておく(Java の作法)
-            throw new AnalysisException("分析が中断されました", e);
+            throw new AnalysisException(e, "error.analysis.interrupted");
         }
         String output = Files.readString(logFile, StandardCharsets.UTF_8).strip();
         if (process.exitValue() != 0) {
             log.warn("Analysis failed: exit={}, output={}", process.exitValue(), output);
-            throw new AnalysisException("分析に失敗しました(終了コード " + process.exitValue() + "): " + lastLine(output));
+            throw new AnalysisException("error.analysis.failed", process.exitValue(), lastLine(output));
         }
         log.info("Analysis output: {}", lastLine(output));
     }

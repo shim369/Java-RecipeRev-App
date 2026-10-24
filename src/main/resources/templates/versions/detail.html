@@ -1,88 +1,88 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ja">
-<head th:replace="~{fragments/layout :: head(${detail.recipe.name} + ' 第' + ${detail.version.versionNo} + '版')}"></head>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="en">
+<head th:replace="~{fragments/layout :: head(${detail.recipe.name} + ' ' + #{version.label(${detail.version.versionNo})})}"></head>
 <body>
 <header th:replace="~{fragments/layout :: header}"></header>
 <main class="container" th:with="recipe=${detail.recipe}, v=${detail.version}">
     <nav class="breadcrumb">
-        <a th:href="@{/recipes}">レシピ一覧</a> &rsaquo;
-        <a th:href="@{/recipes/{id}(id=${recipe.id})}" th:text="${recipe.name}">カレー</a> &rsaquo;
-        <span th:text="'第' + ${v.versionNo} + '版'">第2版</span>
+        <a th:href="@{/recipes}" th:text="#{nav.recipes}">Recipes</a> &rsaquo;
+        <a th:href="@{/recipes/{id}(id=${recipe.id})}" th:text="${recipe.name}">Curry</a> &rsaquo;
+        <span th:text="#{version.label(${v.versionNo})}">v2</span>
     </nav>
     <div th:replace="~{fragments/layout :: flash}"></div>
 
     <div class="page-head">
         <div>
             <h1>
-                <span th:text="${recipe.name}">カレー</span>
-                <span th:text="'第' + ${v.versionNo} + '版'">第2版</span>
+                <span th:text="${recipe.name}">Curry</span>
+                <span th:text="#{version.label(${v.versionNo})}">v2</span>
                 <span th:replace="~{fragments/layout :: status(${v.status})}"></span>
             </h1>
             <p class="muted">
-                作成: <span th:text="${#temporals.format(v.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
-                <th:block th:if="${v.basedOn}"> / 派生元:
+                <span th:text="#{versionDetail.created}">Created</span>: <span th:text="${#temporals.format(v.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
+                <th:block th:if="${v.basedOn}"> / <span th:text="#{versionDetail.basedOn}">Based on</span>:
                     <a th:href="@{/recipes/{id}/versions/{no}(id=${recipe.id}, no=${v.basedOn.versionNo})}"
-                       th:text="'第' + ${v.basedOn.versionNo} + '版'">第1版</a>
+                       th:text="#{version.label(${v.basedOn.versionNo})}">v1</a>
                 </th:block>
-                / 平均評価: <strong th:text="${detail.averageRating} ? ${#numbers.formatDecimal(detail.averageRating, 1, 2)} : '—'">4.00</strong>
+                / <span th:text="#{versionDetail.avg}">Avg. rating</span>: <strong th:text="${detail.averageRating} ? ${#numbers.formatDecimal(detail.averageRating, 1, 2)} : '—'">4.00</strong>
             </p>
-            <p th:if="${v.changeNote}">変更メモ: <span th:text="${v.changeNote}">砂糖を増やした</span></p>
+            <p th:if="${v.changeNote}"><span th:text="#{versionDetail.changeNote}">Change note</span>: <span th:text="${v.changeNote}">Added sugar</span></p>
         </div>
     </div>
 
     <!--/* 状態によってボタンを出し分ける。サーバ側でも同じルールを検査している(画面を通らない送信への対策) */-->
     <div class="card actions">
-        <a class="btn btn-primary" th:href="@{/recipes/{id}/versions/{no}/logs/new(id=${recipe.id}, no=${v.versionNo})}">調理ログを登録</a>
-        <a class="btn" th:href="@{/recipes/{id}/versions/new(id=${recipe.id}, base=${v.versionNo})}">この版を元に編集</a>
-        <a class="btn" th:if="${detail.previousNo()}"
-           th:href="@{/recipes/{id}/diff(id=${recipe.id}, from=${detail.previousNo()}, to=${v.versionNo})}">1つ前の版と比較</a>
+        <a class="btn btn-primary" th:href="@{/recipes/{id}/versions/{no}/logs/new(id=${recipe.id}, no=${v.versionNo})}" th:text="#{versionDetail.addLog}">Add cooking log</a>
+        <a class="btn" th:href="@{/recipes/{id}/versions/new(id=${recipe.id}, base=${v.versionNo})}" th:text="#{versionDetail.editFrom}">Edit from this version</a>
+        <a class="btn" th:if="${detail.previousNo()}" th:text="#{versionDetail.comparePrev}"
+           th:href="@{/recipes/{id}/diff(id=${recipe.id}, from=${detail.previousNo()}, to=${v.versionNo})}">Compare with previous version</a>
         <form th:if="${v.isDraft()}" th:action="@{/recipes/{id}/versions/{no}/start-trial(id=${recipe.id}, no=${v.versionNo})}" method="post">
-            <button type="submit" class="btn">試作を開始</button>
+            <button type="submit" class="btn" th:text="#{versionDetail.startTrial}">Start trial</button>
         </form>
         <form th:unless="${v.isFinal()}" th:action="@{/recipes/{id}/versions/{no}/finalize(id=${recipe.id}, no=${v.versionNo})}" method="post"
-              th:attr="data-confirm=${detail.currentFinalNo} ? '第' + ${v.versionNo} + '版を決定版にします。現在の決定版 第' + ${detail.currentFinalNo} + '版は試作中に戻ります。よろしいですか?' : '第' + ${v.versionNo} + '版を決定版にします。よろしいですか?'">
-            <button type="submit" class="btn">この版を決定版にする</button>
+              th:attr="data-confirm=${detail.currentFinalNo} ? #{versionDetail.finalizeConfirmSwitch(${v.versionNo}, ${detail.currentFinalNo})} : #{versionDetail.finalizeConfirm(${v.versionNo})}">
+            <button type="submit" class="btn" th:text="#{versionDetail.finalize}">Make this the final version</button>
         </form>
     </div>
 
     <section class="card two-col">
         <div>
-            <h2>材料</h2>
+            <h2 th:text="#{recipeDetail.ingredients}">Ingredients</h2>
             <table class="table table-compact">
                 <tbody>
                 <tr th:each="ing : ${v.ingredients}">
-                    <td th:text="${ing.name}">砂糖</td>
+                    <td th:text="${ing.name}">Sugar</td>
                     <td class="num" th:text="${ing.toLine().amountLabel()}">30 g</td>
                 </tr>
                 </tbody>
             </table>
         </div>
         <div>
-            <h2>手順</h2>
+            <h2 th:text="#{recipeDetail.steps}">Steps</h2>
             <ol class="steps">
-                <li th:each="step : ${v.stepList}" th:text="${step}">炒める</li>
+                <li th:each="step : ${v.stepList}" th:text="${step}">Bake</li>
             </ol>
         </div>
     </section>
 
     <section class="card">
-        <h2>調理ログ <span class="muted" th:text="${detail.logs.size()} + '件'">2件</span></h2>
-        <p class="muted" th:if="${detail.logs.isEmpty()}">まだ調理ログがありません。</p>
+        <h2><span th:text="#{versionDetail.logs}">Cooking logs</span> <span class="muted" th:text="#{versionDetail.logCount(${detail.logs.size()})}">(2)</span></h2>
+        <p class="muted" th:if="${detail.logs.isEmpty()}" th:text="#{versionDetail.noLogs}"></p>
         <ul class="log-list">
             <li class="log-item" th:each="l : ${detail.logs}">
                 <a th:if="${l.photoPath}" th:href="@{/photos/{f}(f=${l.photoPath})}" target="_blank" rel="noopener">
-                    <img th:src="@{/photos/{f}(f=${l.photoPath})}" th:alt="${#temporals.format(l.cookedOn, 'yyyy-MM-dd')} + 'の写真'">
+                    <img th:src="@{/photos/{f}(f=${l.photoPath})}" th:alt="#{versionDetail.photoAlt(${#temporals.format(l.cookedOn, 'yyyy-MM-dd')})}">
                 </a>
                 <div class="log-body">
                     <div>
                         <strong th:text="${#temporals.format(l.cookedOn, 'yyyy-MM-dd')}">2026-10-24</strong>
-                        <span class="stars" th:text="${#strings.repeat('★', l.rating)} + ${#strings.repeat('☆', 5 - l.rating)}" th:attr="aria-label='評価 ' + ${l.rating}">★★★☆☆</span>
+                        <span class="stars" th:text="${#strings.repeat('★', l.rating)} + ${#strings.repeat('☆', 5 - l.rating)}" th:attr="aria-label=#{versionDetail.ratingAria(${l.rating})}">★★★☆☆</span>
                     </div>
-                    <p class="log-memo" th:if="${l.memo}" th:text="${l.memo}">甘さちょうど良い</p>
+                    <p class="log-memo" th:if="${l.memo}" th:text="${l.memo}">Just right</p>
                 </div>
                 <form th:action="@{/recipes/{id}/logs/{logId}/delete(id=${recipe.id}, logId=${l.id})}" method="post"
-                      data-confirm="この調理ログを削除しますか?(写真も削除されます)">
-                    <button type="submit" class="btn btn-small btn-ghost">削除</button>
+                      th:attr="data-confirm=#{versionDetail.deleteLogConfirm}">
+                    <button type="submit" class="btn btn-small btn-ghost" th:text="#{common.delete}">Delete</button>
                 </form>
             </li>
         </ul>

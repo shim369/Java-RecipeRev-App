@@ -1,79 +1,92 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="en">
 <head th:replace="~{fragments/layout :: head(${detail.recipe.name})}"></head>
 <body>
 <header th:replace="~{fragments/layout :: header}"></header>
 <main class="container" th:with="recipe=${detail.recipe}, rep=${detail.representative}">
-    <nav class="breadcrumb"><a th:href="@{/recipes}">レシピ一覧</a> &rsaquo; <span th:text="${recipe.name}">カレー</span></nav>
+    <nav class="breadcrumb"><a th:href="@{/recipes}" th:text="#{nav.recipes}">Recipes</a> &rsaquo; <span th:text="${recipe.name}">Curry</span></nav>
     <div th:replace="~{fragments/layout :: flash}"></div>
 
     <div class="page-head">
         <div>
-            <h1 th:text="${recipe.name}">カレー</h1>
-            <p class="description" th:if="${recipe.description}" th:text="${recipe.description}">説明</p>
+            <h1 th:text="${recipe.name}">Curry</h1>
+            <p class="description" th:if="${recipe.description}" th:text="${recipe.description}">Description</p>
         </div>
         <div class="actions">
-            <a class="btn btn-primary" th:href="@{/recipes/{id}/versions/new(id=${recipe.id})}">最新版を元に編集</a>
-            <a class="btn" th:href="@{/recipes/{id}/analysis(id=${recipe.id})}">傾向分析</a>
-            <a class="btn" th:href="@{/recipes/{id}/edit(id=${recipe.id})}">基本情報を編集</a>
-            <form th:action="@{/recipes/{id}/delete(id=${recipe.id})}" method="post"
-                  data-confirm="このレシピを削除しますか?(版と調理ログの記録は残ります)">
-                <button type="submit" class="btn btn-danger">削除</button>
+            <a class="btn btn-primary" th:href="@{/recipes/{id}/versions/new(id=${recipe.id})}" th:text="#{recipeDetail.editLatest}">Edit from latest version</a>
+            <a class="btn" th:href="@{/recipes/{id}/analysis(id=${recipe.id})}" th:text="#{recipeDetail.analysis}">Trend analysis</a>
+            <a class="btn" th:href="@{/recipes/{id}/edit(id=${recipe.id})}" th:text="#{recipeDetail.editBasic}">Edit basic info</a>
+            <form th:action="@{/recipes/{id}/delete(id=${recipe.id})}" method="post" th:attr="data-confirm=#{recipeDetail.deleteConfirm}">
+                <button type="submit" class="btn btn-danger" th:text="#{common.delete}">Delete</button>
             </form>
         </div>
     </div>
 
     <section class="card">
         <h2>
-            <span th:text="${rep.isFinal()} ? '決定版' : '最新版'">決定版</span>:
-            <a th:href="@{/recipes/{id}/versions/{no}(id=${recipe.id}, no=${rep.versionNo})}" th:text="'第' + ${rep.versionNo} + '版'">第2版</a>
+            <span th:text="${rep.isFinal()} ? #{recipeDetail.final} : #{recipeDetail.latest}">Final</span>:
+            <a th:href="@{/recipes/{id}/versions/{no}(id=${recipe.id}, no=${rep.versionNo})}" th:text="#{version.label(${rep.versionNo})}">v2</a>
             <span th:replace="~{fragments/layout :: status(${rep.status})}"></span>
         </h2>
         <div class="two-col">
             <div>
-                <h3>材料</h3>
+                <h3 th:text="#{recipeDetail.ingredients}">Ingredients</h3>
                 <table class="table table-compact">
                     <tbody>
                     <tr th:each="ing : ${rep.ingredients}">
-                        <td th:text="${ing.name}">砂糖</td>
+                        <td th:text="${ing.name}">Sugar</td>
                         <td class="num" th:text="${ing.toLine().amountLabel()}">30 g</td>
                     </tr>
                     </tbody>
                 </table>
             </div>
             <div>
-                <h3>手順</h3>
+                <h3 th:text="#{recipeDetail.steps}">Steps</h3>
                 <ol class="steps">
-                    <li th:each="step : ${rep.stepList}" th:text="${step}">玉ねぎを炒める</li>
+                    <li th:each="step : ${rep.stepList}" th:text="${step}">Saute the onions</li>
                 </ol>
             </div>
         </div>
     </section>
 
     <section class="card">
-        <h2>評価推移</h2>
-        <p class="hint">版ごとの平均評価です。金色の点が決定版、線が途切れている版は調理ログがありません。</p>
+        <h2 th:text="#{recipeDetail.trend}">Rating trend</h2>
+        <p class="hint" th:text="#{recipeDetail.trendHint}"></p>
+        <!--/* グラフ内の文言は言語ごとに data 属性で JavaScript に渡す。{0} は JS 側で置き換える */-->
         <div class="chart-box">
-            <canvas id="rating-chart" th:attr="data-url=@{/api/recipes/{id}/rating-trend(id=${recipe.id})}" aria-label="版ごとの平均評価の折れ線グラフ" role="img"></canvas>
+            <canvas id="rating-chart" role="img"
+                    th:attr="data-url=@{/api/recipes/{id}/rating-trend(id=${recipe.id})},
+                             aria-label=#{recipeDetail.trendAria},
+                             data-label-version=#{version.label('{0}')},
+                             data-label-avg=#{chart.avg},
+                             data-label-cooked=#{chart.cooked('{0}')},
+                             data-label-final=#{chart.final},
+                             data-label-empty=#{chart.empty},
+                             data-label-error=#{chart.error}"></canvas>
         </div>
     </section>
 
     <section class="card">
-        <h2>版履歴</h2>
+        <h2 th:text="#{recipeDetail.history}">Version history</h2>
         <!--/* 比較する2つの版をラジオボタンで選び、GET で SCR-07 に送る */-->
         <form th:action="@{/recipes/{id}/diff(id=${recipe.id})}" method="get">
             <div class="table-scroll">
                 <table class="table">
                     <thead>
-                    <tr><th>比較元</th><th>比較先</th><th>版</th><th>状態</th><th>変更メモ</th><th>作成日時</th><th class="num">平均評価</th><th class="num">調理回数</th></tr>
+                    <tr>
+                        <th th:text="#{history.col.from}">From</th><th th:text="#{history.col.to}">To</th>
+                        <th th:text="#{history.col.version}">Version</th><th th:text="#{history.col.status}">Status</th>
+                        <th th:text="#{history.col.note}">Change note</th><th th:text="#{history.col.created}">Created</th>
+                        <th class="num" th:text="#{history.col.avg}">Avg.</th><th class="num" th:text="#{history.col.logs}">Cooked</th>
+                    </tr>
                     </thead>
                     <tbody>
                     <tr th:each="v, stat : ${detail.versions}">
-                        <td><input type="radio" name="from" th:value="${v.versionNo}" th:checked="${stat.size > 1 and stat.index == stat.size - 2}" th:attr="aria-label='比較元 第' + ${v.versionNo} + '版'"></td>
-                        <td><input type="radio" name="to" th:value="${v.versionNo}" th:checked="${stat.last}" th:attr="aria-label='比較先 第' + ${v.versionNo} + '版'"></td>
-                        <td><a th:href="@{/recipes/{id}/versions/{no}(id=${recipe.id}, no=${v.versionNo})}" th:text="'第' + ${v.versionNo} + '版'">第1版</a></td>
+                        <td><input type="radio" name="from" th:value="${v.versionNo}" th:checked="${stat.size > 1 and stat.index == stat.size - 2}" th:attr="aria-label=#{history.fromAria(${v.versionNo})}"></td>
+                        <td><input type="radio" name="to" th:value="${v.versionNo}" th:checked="${stat.last}" th:attr="aria-label=#{history.toAria(${v.versionNo})}"></td>
+                        <td><a th:href="@{/recipes/{id}/versions/{no}(id=${recipe.id}, no=${v.versionNo})}" th:text="#{version.label(${v.versionNo})}">v1</a></td>
                         <td><span th:replace="~{fragments/layout :: status(${v.status})}"></span></td>
-                        <td th:text="${v.changeNote} ?: '—'">砂糖を増やした</td>
+                        <td th:text="${v.changeNote} ?: '—'">Added sugar</td>
                         <td th:text="${#temporals.format(v.createdAt, 'yyyy-MM-dd HH:mm')}">2026-10-24</td>
                         <td class="num" th:text="${v.averageRating} ? ${#numbers.formatDecimal(v.averageRating, 1, 2)} : '—'">4.00</td>
                         <td class="num" th:text="${v.logCount}">2</td>
@@ -82,7 +95,7 @@
                 </table>
             </div>
             <div class="actions" th:if="${detail.versions.size() > 1}" style="margin-top:12px">
-                <button type="submit" class="btn">選んだ2つの版を比較</button>
+                <button type="submit" class="btn" th:text="#{history.compare}">Compare selected versions</button>
             </div>
         </form>
     </section>

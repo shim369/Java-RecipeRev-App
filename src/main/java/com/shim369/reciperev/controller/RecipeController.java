@@ -1,5 +1,6 @@
 package com.shim369.reciperev.controller;
 
+import com.shim369.reciperev.config.Messages;
 import com.shim369.reciperev.domain.Recipe;
 import com.shim369.reciperev.dto.IngredientForm;
 import com.shim369.reciperev.dto.RecipeBasicForm;
@@ -23,9 +24,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class RecipeController {
 
     private final RecipeService recipeService;
+    private final Messages messages;
 
-    public RecipeController(RecipeService recipeService) {
+    public RecipeController(RecipeService recipeService, Messages messages) {
         this.recipeService = recipeService;
+        this.messages = messages;
     }
 
     @GetMapping("/")
@@ -58,7 +61,7 @@ public class RecipeController {
             return "recipes/new";
         }
         Recipe recipe = recipeService.create(form);
-        redirect.addFlashAttribute("message", "「" + recipe.getName() + "」を登録しました(第1版・下書き)");
+        redirect.addFlashAttribute("message", messages.get("flash.recipeCreated", recipe.getName()));
         return "redirect:/recipes/" + recipe.getId();
     }
 
@@ -87,7 +90,7 @@ public class RecipeController {
             return "recipes/edit";
         }
         recipeService.updateBasicInfo(id, form);
-        redirect.addFlashAttribute("message", "基本情報を更新しました");
+        redirect.addFlashAttribute("message", messages.get("flash.recipeUpdated"));
         return "redirect:/recipes/" + id;
     }
 
@@ -95,7 +98,7 @@ public class RecipeController {
     public String delete(@PathVariable long id, RedirectAttributes redirect) {
         Recipe recipe = recipeService.getActive(id);
         recipeService.delete(id);
-        redirect.addFlashAttribute("message", "「" + recipe.getName() + "」を削除しました");
+        redirect.addFlashAttribute("message", messages.get("flash.recipeDeleted", recipe.getName()));
         return "redirect:/recipes";
     }
 }

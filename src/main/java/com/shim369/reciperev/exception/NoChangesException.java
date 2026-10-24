@@ -4,6 +4,6 @@ package com.shim369.reciperev.exception;
 public class NoChangesException extends BusinessRuleException {
 
     public NoChangesException() {
-        super("派生元の版から変更がありません。材料か手順を変更してから保存してください。");
+        super("error.noChanges");
     }
 }

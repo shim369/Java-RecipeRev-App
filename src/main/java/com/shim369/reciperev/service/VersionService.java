@@ -50,9 +50,9 @@ public class VersionService {
     @Transactional(readOnly = true)
     public RecipeVersion getVersion(long recipeId, int versionNo) {
         recipeRepository.findByIdAndDeletedAtIsNull(recipeId)
-                .orElseThrow(() -> new NotFoundException("レシピが見つかりません(id=" + recipeId + ")"));
+                .orElseThrow(() -> new NotFoundException("error.recipeNotFound", recipeId));
         return versionRepository.findByRecipeIdAndVersionNo(recipeId, versionNo)
-                .orElseThrow(() -> new NotFoundException("第" + versionNo + "版が見つかりません"));
+                .orElseThrow(() -> new NotFoundException("error.versionNotFound", versionNo));
     }
 
     @Transactional(readOnly = true)
@@ -82,9 +82,9 @@ public class VersionService {
     @Transactional
     public RecipeVersion createVersion(long recipeId, int baseVersionNo, VersionContentForm form) {
         Recipe recipe = recipeRepository.findActiveForUpdate(recipeId)
-                .orElseThrow(() -> new NotFoundException("レシピが見つかりません(id=" + recipeId + ")"));
+                .orElseThrow(() -> new NotFoundException("error.recipeNotFound", recipeId));
         RecipeVersion base = versionRepository.findByRecipeIdAndVersionNo(recipeId, baseVersionNo)
-                .orElseThrow(() -> new NotFoundException("第" + baseVersionNo + "版が見つかりません"));
+                .orElseThrow(() -> new NotFoundException("error.versionNotFound", baseVersionNo));
 
         VersionContent content = form.toContent();
         if (!diffService.diff(base.toContent(), content).hasChanges()) {
@@ -117,11 +117,11 @@ public class VersionService {
     public FinalizeResult finalizeVersion(long recipeId, int versionNo) {
         // 同じレシピへの同時操作を直列化する(2つの版が同時に決定版になろうとするのを防ぐ)
         recipeRepository.findActiveForUpdate(recipeId)
-                .orElseThrow(() -> new NotFoundException("レシピが見つかりません(id=" + recipeId + ")"));
+                .orElseThrow(() -> new NotFoundException("error.recipeNotFound", recipeId));
         RecipeVersion target = versionRepository.findByRecipeIdAndVersionNo(recipeId, versionNo)
-                .orElseThrow(() -> new NotFoundException("第" + versionNo + "版が見つかりません"));
+                .orElseThrow(() -> new NotFoundException("error.versionNotFound", versionNo));
         if (target.isFinal()) {
-            throw new BusinessRuleException("第" + versionNo + "版はすでに決定版です。");
+            throw new BusinessRuleException("error.alreadyFinal", versionNo);
         }
         Integer previousNo = versionRepository.findByRecipeIdAndStatus(recipeId, VersionStatus.FINAL)
                 .map(RecipeVersion::getVersionNo).orElse(null);
@@ -140,7 +140,7 @@ public class VersionService {
     @Transactional(readOnly = true)
     public DiffView compare(long recipeId, int fromNo, int toNo) {
         if (fromNo == toNo) {
-            throw new BusinessRuleException("同じ版どうしは比較できません。別の版を選んでください。");
+            throw new BusinessRuleException("error.sameVersion");
         }
         RecipeVersion from = getVersion(recipeId, fromNo);
         RecipeVersion to = getVersion(recipeId, toNo);

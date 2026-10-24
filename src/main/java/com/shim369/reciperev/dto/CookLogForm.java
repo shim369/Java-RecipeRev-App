@@ -12,17 +12,17 @@ import org.springframework.web.multipart.MultipartFile;
 /** SCR-08 調理ログの入力。写真は MultipartFile として受け取る(PHP の $_FILES に相当) */
 public class CookLogForm {
 
-    @NotNull(message = "調理日を入力してください")
-    @PastOrPresent(message = "調理日に未来の日付は指定できません")
+    @NotNull(message = "{validation.cookedOn.required}")
+    @PastOrPresent(message = "{validation.cookedOn.past}")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) // <input type="date"> の yyyy-MM-dd を LocalDate に変換する
     private LocalDate cookedOn = LocalDate.now();
 
-    @NotNull(message = "評価を選んでください")
-    @Min(value = 1, message = "評価は1〜5で選んでください")
-    @Max(value = 5, message = "評価は1〜5で選んでください")
+    @NotNull(message = "{validation.rating.required}")
+    @Min(value = 1, message = "{validation.rating.range}")
+    @Max(value = 5, message = "{validation.rating.range}")
     private Integer rating;
 
-    @Size(max = 1000, message = "味メモは1000文字以内で入力してください")
+    @Size(max = 1000, message = "{validation.memo.size}")
     private String memo;
 
     private MultipartFile photo;

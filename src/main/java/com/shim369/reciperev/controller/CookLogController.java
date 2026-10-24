@@ -1,5 +1,6 @@
 package com.shim369.reciperev.controller;
 
+import com.shim369.reciperev.config.Messages;
 import com.shim369.reciperev.dto.CookLogForm;
 import com.shim369.reciperev.exception.InvalidPhotoException;
 import com.shim369.reciperev.service.CookLogService;
@@ -27,12 +28,14 @@ public class CookLogController {
     private final CookLogService cookLogService;
     private final VersionService versionService;
     private final PhotoStorageService photoStorage;
+    private final Messages messages;
 
     public CookLogController(CookLogService cookLogService, VersionService versionService,
-                             PhotoStorageService photoStorage) {
+                             PhotoStorageService photoStorage, Messages messages) {
         this.cookLogService = cookLogService;
         this.versionService = versionService;
         this.photoStorage = photoStorage;
+        this.messages = messages;
     }
 
     @GetMapping("/recipes/{recipeId}/versions/{versionNo}/logs/new")
@@ -50,11 +53,12 @@ public class CookLogController {
         }
         try {
             boolean startedTrial = cookLogService.register(recipeId, versionNo, form);
-            redirect.addFlashAttribute("message", "調理ログを登録しました"
-                    + (startedTrial ? "(第" + versionNo + "版を試作中にしました)" : ""));
+            redirect.addFlashAttribute("message", startedTrial
+                    ? messages.get("flash.logCreatedTrial", versionNo)
+                    : messages.get("flash.logCreated"));
             return "redirect:/recipes/" + recipeId + "/versions/" + versionNo;
         } catch (InvalidPhotoException e) {
-            result.rejectValue("photo", "invalidPhoto", e.getMessage());
+            result.rejectValue("photo", e.getCode(), e.getArguments(), e.getDefaultMessage());
             return showForm(recipeId, versionNo, form, model);
         }
     }
@@ -68,7 +72,7 @@ public class CookLogController {
     @PostMapping("/recipes/{recipeId}/logs/{logId}/delete")
     public String delete(@PathVariable long recipeId, @PathVariable long logId, RedirectAttributes redirect) {
         int versionNo = cookLogService.delete(recipeId, logId);
-        redirect.addFlashAttribute("message", "調理ログを削除しました");
+        redirect.addFlashAttribute("message", messages.get("flash.logDeleted"));
         return "redirect:/recipes/" + recipeId + "/versions/" + versionNo;
     }
 

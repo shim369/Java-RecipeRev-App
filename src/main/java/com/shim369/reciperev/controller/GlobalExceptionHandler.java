@@ -1,5 +1,6 @@
 package com.shim369.reciperev.controller;
 
+import com.shim369.reciperev.config.Messages;
 import com.shim369.reciperev.exception.BusinessRuleException;
 import com.shim369.reciperev.exception.NotFoundException;
 import org.slf4j.Logger;
@@ -17,49 +18,61 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 /**
  * 例外を1か所で HTTP ステータスとエラー画面(SCR-99)に変換する。
  * 各コントローラに try-catch を書かずに済み、エラー時の見た目と記録方法をそろえられる。
+ * 例外はメッセージキーを持っているので、ここで利用者の言語の文言に変換する。
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler({NotFoundException.class, NoResourceFoundException.class})
+    private final Messages messages;
+
+    public GlobalExceptionHandler(Messages messages) {
+        this.messages = messages;
+    }
+
+    @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleNotFound(Exception e, Model model) {
-        String message = (e instanceof NotFoundException) ? e.getMessage() : "ページが見つかりません";
-        return error(model, "見つかりません", message);
+    public String handleNotFound(NotFoundException e, Model model) {
+        return error(model, "error.title.notFound", messages.get(e));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleNoResource(NoResourceFoundException e, Model model) {
+        return error(model, "error.title.notFound", messages.get("error.message.pageNotFound"));
     }
 
     @ExceptionHandler(BusinessRuleException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleBusinessRule(BusinessRuleException e, Model model) {
-        log.info("Business rule violation: {}", e.getMessage());
-        return error(model, "この操作はできません", e.getMessage());
+        log.info("Business rule violation: {}", e.getCode());
+        return error(model, "error.title.businessRule", messages.get(e));
     }
 
     /** /recipes/abc のように数値でないIDや、必須パラメータが無いリクエスト */
     @ExceptionHandler({MethodArgumentTypeMismatchException.class, MissingServletRequestParameterException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleBadRequest(Exception e, Model model) {
-        return error(model, "不正なリクエスト", "URLまたはパラメータが正しくありません");
+        return error(model, "error.title.badRequest", messages.get("error.message.badRequest"));
     }
 
     /** 写真が5MBを超えた。コントローラに届く前(multipart解析時)に発生する */
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleTooLarge(MaxUploadSizeExceededException e, Model model) {
-        return error(model, "ファイルが大きすぎます", "写真は5MB以下のファイルを選んでください");
+        return error(model, "error.title.tooLarge", messages.get("error.message.tooLarge"));
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String handleUnexpected(Exception e, Model model) {
         log.error("Unexpected error", e); // 想定外の例外だけスタックトレースを残す
-        return error(model, "システムエラー", "予期しないエラーが発生しました。時間をおいて再度お試しください");
+        return error(model, "error.title.system", messages.get("error.message.system"));
     }
 
-    private String error(Model model, String title, String message) {
-        model.addAttribute("errorTitle", title);
+    private String error(Model model, String titleKey, String message) {
+        model.addAttribute("errorTitle", messages.get(titleKey));
         model.addAttribute("errorMessage", message);
         return "error";
     }

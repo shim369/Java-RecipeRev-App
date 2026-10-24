@@ -32,14 +32,14 @@ public record IngredientLine(String name, BigDecimal amount, String unit, String
         return sameAmount && Objects.equals(unit, other.unit) && Objects.equals(note, other.note);
     }
 
-    /** 画面表示用: 「120 g」「少々」「1 個(室温に戻す)」など */
+    /** 画面表示用: 「120 g」「少々」「1 pcs (room temp)」など(どの言語でも読めるよう半角かっこを使う) */
     public String amountLabel() {
         String quantity = ((amount == null ? "" : amount.stripTrailingZeros().toPlainString())
                 + (unit == null ? "" : " " + unit)).strip();
         if (note == null) {
             return quantity.isEmpty() ? "—" : quantity;
         }
-        return quantity.isEmpty() ? note : quantity + "(" + note + ")";
+        return quantity.isEmpty() ? note : quantity + " (" + note + ")";
     }
 
     private static String blankToNull(String s) {

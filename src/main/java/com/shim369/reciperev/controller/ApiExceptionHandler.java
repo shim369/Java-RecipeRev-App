@@ -1,5 +1,6 @@
 package com.shim369.reciperev.controller;
 
+import com.shim369.reciperev.config.Messages;
 import com.shim369.reciperev.exception.NotFoundException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -16,8 +17,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class ApiExceptionHandler {
 
+    private final Messages messages;
+
+    public ApiExceptionHandler(Messages messages) {
+        this.messages = messages;
+    }
+
     @ExceptionHandler(NotFoundException.class)
     public ProblemDetail handleNotFound(NotFoundException e) {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, messages.get(e));
     }
 }

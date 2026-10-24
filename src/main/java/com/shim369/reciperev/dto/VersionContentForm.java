@@ -12,6 +12,7 @@ import java.util.Set;
 /**
  * 版の中身(材料・手順・変更メモ)の入力。レシピ新規登録(SCR-02)と版編集(SCR-05)で共通に使う。
  * 「1つの項目では判定できないルール」は @AssertTrue のメソッドで書く(PHPでいうカスタムバリデーションのクロージャに近い)。
+ * message の "{キー}" は messages*.properties から利用者の言語で取り出される(Spring Boot が MessageSource と連携させている)。
  */
 public class VersionContentForm {
 
@@ -19,16 +20,16 @@ public class VersionContentForm {
     public static final int MAX_STEP_LENGTH = 500;
 
     @Valid // リストの中の IngredientForm も1件ずつ検証する
-    @Size(min = 1, max = 50, message = "材料は1〜50行で入力してください")
+    @Size(min = 1, max = 50, message = "{validation.ingredients.size}")
     private List<IngredientForm> ingredients = new ArrayList<>();
 
     private String steps;
 
-    @Size(max = 200, message = "変更メモは200文字以内で入力してください")
+    @Size(max = 200, message = "{validation.changeNote.size}")
     private String changeNote;
 
     /** BR-11: 材料名は版の中で重複しない */
-    @AssertTrue(message = "同じ材料名が複数あります。1つにまとめてください")
+    @AssertTrue(message = "{validation.ingredients.unique}")
     public boolean isIngredientNamesUnique() {
         Set<String> seen = new HashSet<>();
         for (IngredientForm f : ingredients) {
@@ -39,13 +40,13 @@ public class VersionContentForm {
         return true;
     }
 
-    @AssertTrue(message = "手順は1〜50行で入力してください")
+    @AssertTrue(message = "{validation.steps.count}")
     public boolean isStepCountValid() {
         int count = VersionContent.parseSteps(steps).size();
         return count >= 1 && count <= MAX_STEPS;
     }
 
-    @AssertTrue(message = "手順は1行500文字以内で入力してください")
+    @AssertTrue(message = "{validation.steps.length}")
     public boolean isStepLengthValid() {
         return VersionContent.parseSteps(steps).stream().allMatch(s -> s.length() <= MAX_STEP_LENGTH);
     }

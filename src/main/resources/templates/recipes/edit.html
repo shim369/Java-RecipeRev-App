@@ -1,30 +1,30 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ja">
-<head th:replace="~{fragments/layout :: head('基本情報の編集')}"></head>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="en">
+<head th:replace="~{fragments/layout :: head(#{recipeEdit.title})}"></head>
 <body>
 <header th:replace="~{fragments/layout :: header}"></header>
 <main class="container">
     <nav class="breadcrumb">
-        <a th:href="@{/recipes}">レシピ一覧</a> &rsaquo;
-        <a th:href="@{/recipes/{id}(id=${recipe.id})}" th:text="${recipe.name}">カレー</a> &rsaquo; 基本情報の編集
+        <a th:href="@{/recipes}" th:text="#{nav.recipes}">Recipes</a> &rsaquo;
+        <a th:href="@{/recipes/{id}(id=${recipe.id})}" th:text="${recipe.name}">Curry</a> &rsaquo; <span th:text="#{recipeEdit.title}"></span>
     </nav>
-    <h1>基本情報の編集</h1>
-    <p class="hint">材料・手順の変更は、版詳細の「この版を元に編集」から行います(新しい版が作られます)。</p>
+    <h1 th:text="#{recipeEdit.title}">Edit basic info</h1>
+    <p class="hint" th:text="#{recipeEdit.hint}"></p>
 
     <form class="card form" th:action="@{/recipes/{id}(id=${recipe.id})}" th:object="${form}" method="post" novalidate>
         <div class="field">
-            <label for="name">名前 <span class="required">必須</span></label>
+            <label for="name"><th:block th:text="#{recipe.name}">Name</th:block> <span class="required" th:text="#{common.required}">Required</span></label>
             <input type="text" id="name" th:field="*{name}" maxlength="100">
             <p class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
         </div>
         <div class="field">
-            <label for="description">説明</label>
+            <label for="description" th:text="#{recipe.description}">Description</label>
             <textarea id="description" th:field="*{description}" rows="4" maxlength="1000"></textarea>
             <p class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></p>
         </div>
         <div class="actions">
-            <button type="submit" class="btn btn-primary">更新</button>
-            <a class="btn btn-ghost" th:href="@{/recipes/{id}(id=${recipe.id})}">キャンセル</a>
+            <button type="submit" class="btn btn-primary" th:text="#{recipeEdit.submit}">Update</button>
+            <a class="btn btn-ghost" th:href="@{/recipes/{id}(id=${recipe.id})}" th:text="#{common.cancel}">Cancel</a>
         </div>
     </form>
 </main>

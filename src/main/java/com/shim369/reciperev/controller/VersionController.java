@@ -1,5 +1,6 @@
 package com.shim369.reciperev.controller;
 
+import com.shim369.reciperev.config.Messages;
 import com.shim369.reciperev.domain.RecipeVersion;
 import com.shim369.reciperev.dto.FinalizeResult;
 import com.shim369.reciperev.dto.VersionContentForm;
@@ -23,9 +24,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class VersionController {
 
     private final VersionService versionService;
+    private final Messages messages;
 
-    public VersionController(VersionService versionService) {
+    public VersionController(VersionService versionService, Messages messages) {
         this.versionService = versionService;
+        this.messages = messages;
     }
 
     /** SCR-05: base を省略したら最新版を元にする */
@@ -47,11 +50,12 @@ public class VersionController {
         }
         try {
             RecipeVersion created = versionService.createVersion(recipeId, base, form);
-            redirect.addFlashAttribute("message", "第" + created.getVersionNo() + "版を作成しました(下書き)");
+            redirect.addFlashAttribute("message", messages.get("flash.versionCreated", created.getVersionNo()));
             return "redirect:/recipes/" + recipeId + "/versions/" + created.getVersionNo();
         } catch (NoChangesException e) {
             // BR-03 は入力エラーと同じ見せ方にする(エラー画面に飛ばさず、入力内容を残したまま戻す)
-            result.reject("noChanges", e.getMessage());
+            // reject(キー, 引数, 既定文言): テンプレートの #fields.globalErrors() で利用者の言語に変換される
+            result.reject(e.getCode(), e.getArguments(), e.getDefaultMessage());
             return showForm(recipeId, base, form, model);
         }
     }
@@ -71,7 +75,7 @@ public class VersionController {
     @PostMapping("/versions/{versionNo}/start-trial")
     public String startTrial(@PathVariable long recipeId, @PathVariable int versionNo, RedirectAttributes redirect) {
         versionService.startTrial(recipeId, versionNo);
-        redirect.addFlashAttribute("message", "第" + versionNo + "版を試作中にしました");
+        redirect.addFlashAttribute("message", messages.get("flash.trialStarted", versionNo));
         return "redirect:/recipes/" + recipeId + "/versions/" + versionNo;
     }
 
@@ -79,7 +83,9 @@ public class VersionController {
     public String finalizeVersion(@PathVariable long recipeId, @PathVariable int versionNo,
                                   RedirectAttributes redirect) {
         FinalizeResult result = versionService.finalizeVersion(recipeId, versionNo);
-        redirect.addFlashAttribute("message", result.message());
+        redirect.addFlashAttribute("message", result.previousFinalNo() == null
+                ? messages.get("flash.finalized", versionNo)
+                : messages.get("flash.finalizedSwitch", versionNo, result.previousFinalNo()));
         return "redirect:/recipes/" + recipeId + "/versions/" + versionNo;
     }
 
@@ -92,7 +98,7 @@ public class VersionController {
         int latest = versionService.latestVersionNo(recipeId);
         if (from == null || to == null) {
             if (latest < 2) {
-                redirect.addFlashAttribute("errorFlash", "比較するには版が2つ以上必要です");
+                redirect.addFlashAttribute("errorFlash", messages.get("flash.diffNeedsTwo"));
                 return "redirect:/recipes/" + recipeId;
             }
             return "redirect:/recipes/" + recipeId + "/diff?from=" + (latest - 1) + "&to=" + latest;

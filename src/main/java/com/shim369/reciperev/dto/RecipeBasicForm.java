@@ -6,11 +6,11 @@ import jakarta.validation.constraints.Size;
 /** SCR-04 レシピ基本情報(名前・説明)の入力。ここを変えても版は増えない */
 public class RecipeBasicForm {
 
-    @NotBlank(message = "名前を入力してください")
-    @Size(max = 100, message = "名前は100文字以内で入力してください")
+    @NotBlank(message = "{validation.name.required}")
+    @Size(max = 100, message = "{validation.name.size}")
     private String name;
 
-    @Size(max = 1000, message = "説明は1000文字以内で入力してください")
+    @Size(max = 1000, message = "{validation.description.size}")
     private String description;
 
     public String getName() {

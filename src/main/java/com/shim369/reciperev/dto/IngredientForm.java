@@ -14,19 +14,19 @@ import java.math.BigDecimal;
  */
 public class IngredientForm {
 
-    @NotBlank(message = "材料名を入力してください")
-    @Size(max = 50, message = "材料名は50文字以内で入力してください")
+    @NotBlank(message = "{validation.ingredient.name.required}")
+    @Size(max = 50, message = "{validation.ingredient.name.size}")
     private String name;
 
-    @DecimalMin(value = "0", message = "分量は0以上で入力してください")
-    @DecimalMax(value = "99999.99", message = "分量は99999.99以下で入力してください")
-    @Digits(integer = 5, fraction = 2, message = "分量は小数第2位までで入力してください")
+    @DecimalMin(value = "0", message = "{validation.amount.min}")
+    @DecimalMax(value = "99999.99", message = "{validation.amount.max}")
+    @Digits(integer = 5, fraction = 2, message = "{validation.amount.digits}")
     private BigDecimal amount;
 
-    @Size(max = 20, message = "単位は20文字以内で入力してください")
+    @Size(max = 20, message = "{validation.unit.size}")
     private String unit;
 
-    @Size(max = 100, message = "材料メモは100文字以内で入力してください")
+    @Size(max = 100, message = "{validation.note.size}")
     private String note;
 
     public IngredientForm() {

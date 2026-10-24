@@ -51,7 +51,7 @@ public class PhotoStorageService {
         try (InputStream in = file.getInputStream()) {
             byte[] head = in.readNBytes(12);
             ImageType type = ImageType.detect(head)
-                    .orElseThrow(() -> new InvalidPhotoException("写真は JPEG / PNG / WebP のファイルを選んでください"));
+                    .orElseThrow(InvalidPhotoException::new);
             String storedName = UUID.randomUUID() + "." + type.extension;
             Files.createDirectories(uploadDir);
             // 先頭12バイトは読んでしまったので、改めてストリームを開いて全体を書き込む
@@ -61,7 +61,7 @@ public class PhotoStorageService {
             log.info("Photo stored: {}", storedName);
             return Optional.of(storedName);
         } catch (IOException e) {
-            throw new UncheckedIOException("写真の保存に失敗しました", e);
+            throw new UncheckedIOException("Failed to store photo", e);
         }
     }
 
