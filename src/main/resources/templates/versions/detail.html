@@ -32,6 +32,7 @@
 
     <!--/* 状態によってボタンを出し分ける。サーバ側でも同じルールを検査している(画面を通らない送信への対策) */-->
     <div class="card actions">
+        <a class="btn btn-primary" th:href="@{/recipes/{id}/versions/{no}/logs/new(id=${recipe.id}, no=${v.versionNo})}">調理ログを登録</a>
         <a class="btn" th:href="@{/recipes/{id}/versions/new(id=${recipe.id}, base=${v.versionNo})}">この版を元に編集</a>
         <a class="btn" th:if="${detail.previousNo()}"
            th:href="@{/recipes/{id}/diff(id=${recipe.id}, from=${detail.previousNo()}, to=${v.versionNo})}">1つ前の版と比較</a>
@@ -40,7 +41,7 @@
         </form>
         <form th:unless="${v.isFinal()}" th:action="@{/recipes/{id}/versions/{no}/finalize(id=${recipe.id}, no=${v.versionNo})}" method="post"
               th:attr="data-confirm=${detail.currentFinalNo} ? '第' + ${v.versionNo} + '版を決定版にします。現在の決定版 第' + ${detail.currentFinalNo} + '版は試作中に戻ります。よろしいですか?' : '第' + ${v.versionNo} + '版を決定版にします。よろしいですか?'">
-            <button type="submit" class="btn btn-primary">この版を決定版にする</button>
+            <button type="submit" class="btn">この版を決定版にする</button>
         </form>
     </div>
 
@@ -62,6 +63,29 @@
                 <li th:each="step : ${v.stepList}" th:text="${step}">炒める</li>
             </ol>
         </div>
+    </section>
+
+    <section class="card">
+        <h2>調理ログ <span class="muted" th:text="${detail.logs.size()} + '件'">2件</span></h2>
+        <p class="muted" th:if="${detail.logs.isEmpty()}">まだ調理ログがありません。</p>
+        <ul class="log-list">
+            <li class="log-item" th:each="l : ${detail.logs}">
+                <a th:if="${l.photoPath}" th:href="@{/photos/{f}(f=${l.photoPath})}" target="_blank" rel="noopener">
+                    <img th:src="@{/photos/{f}(f=${l.photoPath})}" th:alt="${#temporals.format(l.cookedOn, 'yyyy-MM-dd')} + 'の写真'">
+                </a>
+                <div class="log-body">
+                    <div>
+                        <strong th:text="${#temporals.format(l.cookedOn, 'yyyy-MM-dd')}">2026-10-24</strong>
+                        <span class="stars" th:text="${#strings.repeat('★', l.rating)} + ${#strings.repeat('☆', 5 - l.rating)}" th:attr="aria-label='評価 ' + ${l.rating}">★★★☆☆</span>
+                    </div>
+                    <p class="log-memo" th:if="${l.memo}" th:text="${l.memo}">甘さちょうど良い</p>
+                </div>
+                <form th:action="@{/recipes/{id}/logs/{logId}/delete(id=${recipe.id}, logId=${l.id})}" method="post"
+                      data-confirm="この調理ログを削除しますか?(写真も削除されます)">
+                    <button type="submit" class="btn btn-small btn-ghost">削除</button>
+                </form>
+            </li>
+        </ul>
     </section>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>

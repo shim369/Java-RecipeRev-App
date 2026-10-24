@@ -13,6 +13,7 @@ import com.shim369.reciperev.dto.VersionSummary;
 import com.shim369.reciperev.exception.BusinessRuleException;
 import com.shim369.reciperev.exception.NoChangesException;
 import com.shim369.reciperev.exception.NotFoundException;
+import com.shim369.reciperev.repository.CookLogRepository;
 import com.shim369.reciperev.repository.RecipeQueryRepository;
 import com.shim369.reciperev.repository.RecipeRepository;
 import com.shim369.reciperev.repository.RecipeVersionRepository;
@@ -32,13 +33,16 @@ public class VersionService {
     private final RecipeRepository recipeRepository;
     private final RecipeVersionRepository versionRepository;
     private final RecipeQueryRepository queryRepository;
+    private final CookLogRepository cookLogRepository;
     private final RecipeDiffService diffService;
 
     public VersionService(RecipeRepository recipeRepository, RecipeVersionRepository versionRepository,
-                          RecipeQueryRepository queryRepository, RecipeDiffService diffService) {
+                          RecipeQueryRepository queryRepository, CookLogRepository cookLogRepository,
+                          RecipeDiffService diffService) {
         this.recipeRepository = recipeRepository;
         this.versionRepository = versionRepository;
         this.queryRepository = queryRepository;
+        this.cookLogRepository = cookLogRepository;
         this.diffService = diffService;
     }
 
@@ -58,7 +62,8 @@ public class VersionService {
         recipe.getName(); // トランザクション内で読み込んでおく(画面で遅延ロードさせない)
         Integer finalNo = versionRepository.findByRecipeIdAndStatus(recipeId, VersionStatus.FINAL)
                 .map(RecipeVersion::getVersionNo).orElse(null);
-        return new VersionDetail(recipe, version, finalNo, queryRepository.findAverageRating(version.getId()));
+        return new VersionDetail(recipe, version, finalNo, queryRepository.findAverageRating(version.getId()),
+                cookLogRepository.findByVersionIdOrderByCookedOnDescIdDesc(version.getId()));
     }
 
     @Transactional(readOnly = true)
