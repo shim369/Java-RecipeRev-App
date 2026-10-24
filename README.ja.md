@@ -4,7 +4,7 @@
 
 **RecipeRev**(Recipe + Revision)は、レシピのバージョン管理Webアプリです。レシピを調整するたびに新しい版を記録し、任意の2版を並べて比較し、調理結果を記録して「一番おいしい配合」を探せます。
 
-![レシピ詳細: 決定版・評価推移・版履歴](docs/images/recipe-detail.png)
+![レシピ詳細: 決定版・評価推移・版履歴](docs/images/ja/recipe-detail.png)
 
 ## コンセプト
 
@@ -29,16 +29,17 @@
 - **調理ログ**: 調理日、評価(1〜5)、味メモ、写真(1枚)を版に紐づけて記録。下書きの版は自動で試作中になる
 - **評価推移グラフ**: 版ごとの平均評価を Chart.js の折れ線グラフで表示(決定版を強調し、ログのない版は線を切る)
 - **傾向分析**: Pythonスクリプトで材料の分量と評価の相関を分析し(例: 「砂糖が多い版ほど高評価」)、結果を画面に表示
+- **英語・日本語の切り替え**: 画面は英語が既定で、ヘッダーのボタンで日本語に切り替えられる(Cookie に保存)。画面の文言・入力エラー・エラーメッセージはすべて `messages.properties` / `messages_ja.properties` に置いている
 
 | 版比較(差分) | 傾向分析 |
 | --- | --- |
-| ![版比較](docs/images/diff.png) | ![傾向分析](docs/images/analysis.png) |
+| ![版比較](docs/images/ja/diff.png) | ![傾向分析](docs/images/ja/analysis.png) |
 
 ## 技術スタック
 
 | 領域 | 技術 |
 | --- | --- |
-| バックエンド | Java 21, Spring Boot 3.5, Spring MVC, Spring Data JPA, JdbcClient, Bean Validation, Flyway, Maven |
+| バックエンド | Java 21, Spring Boot 3.5, Spring MVC, Spring Data JPA, JdbcClient, Bean Validation, Flyway, MessageSource(多言語対応), Maven |
 | フロントエンド | Thymeleaf, 素のJavaScript, Chart.js 4, HTML/CSS |
 | データベース | MySQL 8.4(Docker Compose) |
 | 分析 | Python 3.9以上 + pandas(`analysis/`) |
@@ -61,6 +62,7 @@
 - 業務ルールは、ドメイン/サービスのコードと DB の制約の2か所で守る
 - 入力検証はBean Validation。例外は `@ControllerAdvice`(HTML)と `@RestControllerAdvice`(ProblemDetail の JSON)で集約
 - Python分析はアプリから疎結合: Java が CSV を書き出し、スクリプトをバッチとして実行し、出力された JSON を読む
+- 多言語対応: `CookieLocaleResolver`(既定は英語。ブラウザの `Accept-Language` は見ない)+ `LocaleChangeInterceptor`(`?lang=ja` / `?lang=en`)。例外は文言ではなく「メッセージキー + 引数」(`MessageSourceResolvable`)を持ち、表示する時点で利用者の言語に変換する
 
 ## データベース
 
@@ -102,9 +104,11 @@ docker compose up -d
 
 # サンプルデータ付きで起動する場合(レシピ2件、版7件、調理ログ)
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
+# サンプルデータを日本語にする場合
+./mvnw spring-boot:run -Dspring-boot.run.profiles=demo -Dspring-boot.run.arguments=--reciperev.demo.locale=ja
 ```
 
-起動後、http://localhost:8080 を開いてください。
+起動後、http://localhost:8080 を開いてください。画面は英語で表示されます。右上の「日本語」ボタンで日本語に切り替えられます。
 
 - コマンドはリポジトリ直下で実行してください。写真は `uploads/`、分析ファイルは `analysis/output/` に、そこからの相対パスで保存されます。
 - DB の接続設定の初期値は `docker-compose.yml` と同じです。変更する場合は `.env.example` を `.env` にコピーし(Docker Compose が読み込みます)、アプリにも同じ環境変数を設定してください。
@@ -112,7 +116,7 @@ docker compose up -d
 ### テストの実行
 
 ```bash
-./mvnw test                                          # Java 71件(Testcontainers を使うため Docker が必要)
+./mvnw test                                          # Java 77件(Testcontainers を使うため Docker が必要)
 python3 -m unittest discover -s analysis/tests -v    # Python 10件
 ```
 
@@ -129,11 +133,12 @@ Java-RecipeRev-App/
 │   │   ├── repository/      # Spring Data JPA と JdbcClient の SQL
 │   │   ├── domain/          # エンティティ、値オブジェクト、差分モデル
 │   │   ├── dto/             # フォーム、画面表示用のモデル
-│   │   ├── config/          # 型付きの設定値、デモデータ
+│   │   ├── config/          # 型付きの設定値、多言語対応(ロケール)、デモデータ
 │   │   └── exception/
 │   ├── main/resources/
 │   │   ├── db/migration/    # Flyway の SQL
 │   │   ├── templates/       # Thymeleaf
+│   │   ├── messages*.properties  # 画面の文言(英語が既定 / 日本語)
 │   │   └── static/          # CSS、JavaScript
 │   └── test/java/           # 単体テスト・結合テスト
 ├── docker-compose.yml
@@ -160,6 +165,7 @@ Java-RecipeRev-App/
 - [x] Phase 4: 調理ログ(写真含む)、評価推移グラフ
 - [x] Phase 5: Python傾向分析の連携
 - [x] Phase 6: 単体・結合テスト、テスト仕様書、ドキュメント整備
+- [x] 英語を既定とした画面と日本語への切り替え
 
 今後の拡張案: Spring Security によるログインと2段階承認(申請者と承認者を分ける)、状態変更の履歴、材料マスタによる表記ゆれ対策、複数の材料を同時に考慮した回帰分析。
 
