@@ -118,7 +118,7 @@ public class RecipeQueryRepository {
      *   <li>rated: 調理ログがある版と、その平均評価</li>
      *   <li>ingredient_keys: 分析対象の「材料名 + 単位」の一覧</li>
      *   <li>CROSS JOIN で全組み合わせを作り、その版に無い材料は分量 0 とする</li>
-     *   <li>材料はあるが分量が空欄(少々など)の行は除外する</li>
+     *   <li>その版に同じ名前の材料が「分量空欄(少々など)」で入っている場合は、0 ではなく計算から除外する</li>
      * </ul>
      */
     public List<AnalysisRow> findAnalysisRows(long recipeId) {
@@ -145,7 +145,11 @@ public class RecipeQueryRepository {
                          ON i.version_id = r.version_id
                         AND i.name = k.name
                         AND i.unit <=> k.unit
-                 WHERE i.id IS NULL OR i.amount IS NOT NULL
+                 WHERE NOT EXISTS (SELECT 1
+                                     FROM version_ingredients x
+                                    WHERE x.version_id = r.version_id
+                                      AND x.name = k.name
+                                      AND x.amount IS NULL)
                  ORDER BY k.name, k.unit, r.version_no
                 """)
                 .param("recipeId", recipeId)
