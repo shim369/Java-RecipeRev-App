@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<!--/* 共通部品。各画面から th:replace="~{fragments/layout :: head('タイトル')}" のように呼び出す(PHPの include に相当) */-->
-<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<!--/* 共通部品。各画面から th:replace="~{fragments/layout :: head(タイトル)}" のように呼び出す(PHPの include に相当) */-->
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="en">
 <head th:fragment="head(title)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,10 +9,17 @@
 </head>
 <body>
 
+<!--/*
+  言語切り替え: 今が日本語なら「English」、それ以外なら「日本語」へのリンクを出す。
+  リンク先は今のページに ?lang=xx を付けたもの(LanguageSwitcher)。選んだ言語は Cookie に保存される。
+*/-->
 <header th:fragment="header" class="site-header">
-    <div class="container">
+    <div class="container" th:with="target=${#locale.language == 'ja'} ? 'en' : 'ja'">
         <a class="logo" th:href="@{/recipes}">Recipe<span>Rev</span></a>
-        <span class="tagline">レシピのバージョン管理</span>
+        <span class="tagline" th:text="#{app.tagline}">Recipe version control</span>
+        <!--/* th:href の中では Bean 呼び出しが禁止されている(Thymeleaf のセキュリティ制限)ので、th:with で先に計算する */-->
+        <a class="lang-switch" th:with="switchUrl=${@languageSwitcher.url(target)}" th:href="${switchUrl}" th:hreflang="${target}" th:lang="${target}"
+           th:title="#{lang.switchTo}" th:text="${target == 'ja'} ? '日本語' : 'English'">日本語</a>
     </div>
 </header>
 
@@ -23,12 +30,12 @@
 </div>
 
 <footer th:fragment="footer" class="site-footer">
-    <div class="container">RecipeRev — Recipe + Revision</div>
+    <div class="container" th:text="#{app.footer}">RecipeRev — Recipe + Revision</div>
 </footer>
 
-<!--/* 状態バッジ: 下書き=灰、試作中=青、決定版=金 */-->
+<!--/* 状態バッジ: 下書き=灰、試作中=青、決定版=金。表示名は status.DRAFT などのメッセージキー */-->
 <span th:fragment="status(status)" class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(status.name())}"
-      th:text="${status.label}">下書き</span>
+      th:text="#{${status.messageKey()}}">Draft</span>
 
 </body>
 </html>

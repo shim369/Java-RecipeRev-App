@@ -1,5 +1,6 @@
 package com.shim369.reciperev.controller;
 
+import com.shim369.reciperev.config.Messages;
 import com.shim369.reciperev.exception.AnalysisException;
 import com.shim369.reciperev.service.AnalysisService;
 import com.shim369.reciperev.service.RecipeService;
@@ -16,10 +17,12 @@ public class AnalysisController {
 
     private final AnalysisService analysisService;
     private final RecipeService recipeService;
+    private final Messages messages;
 
-    public AnalysisController(AnalysisService analysisService, RecipeService recipeService) {
+    public AnalysisController(AnalysisService analysisService, RecipeService recipeService, Messages messages) {
         this.analysisService = analysisService;
         this.recipeService = recipeService;
+        this.messages = messages;
     }
 
     @GetMapping("/recipes/{recipeId}/analysis")
@@ -34,10 +37,10 @@ public class AnalysisController {
     public String run(@PathVariable long recipeId, RedirectAttributes redirect) {
         try {
             analysisService.run(recipeId);
-            redirect.addFlashAttribute("message", "傾向分析を実行しました");
+            redirect.addFlashAttribute("message", messages.get("flash.analysisDone"));
         } catch (AnalysisException e) {
             // 分析の失敗は想定内のエラーなので、エラー画面ではなく同じ画面にメッセージを出す
-            redirect.addFlashAttribute("errorFlash", e.getMessage());
+            redirect.addFlashAttribute("errorFlash", messages.get(e));
         }
         return "redirect:/recipes/" + recipeId + "/analysis";
     }

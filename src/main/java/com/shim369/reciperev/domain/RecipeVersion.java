@@ -1,6 +1,7 @@
 package com.shim369.reciperev.domain;
 
 import com.shim369.reciperev.exception.BusinessRuleException;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -100,7 +101,9 @@ public class RecipeVersion {
     /** 下書き → 試作中。下書き以外からは呼べない */
     public void startTrial() {
         if (status != VersionStatus.DRAFT) {
-            throw new BusinessRuleException("第" + versionNo + "版は「" + status.getLabel() + "」のため、試作を開始できません。");
+            // 引数に MessageSourceResolvable を渡すと、表示時に状態名も利用者の言語に変換される
+            throw new BusinessRuleException("error.cannotStartTrial", versionNo,
+                    new DefaultMessageSourceResolvable(status.messageKey()));
         }
         status = VersionStatus.TRIAL;
     }
@@ -111,7 +114,7 @@ public class RecipeVersion {
      */
     public void markFinal() {
         if (status == VersionStatus.FINAL) {
-            throw new BusinessRuleException("第" + versionNo + "版はすでに決定版です。");
+            throw new BusinessRuleException("error.alreadyFinal", versionNo);
         }
         status = VersionStatus.FINAL;
     }

@@ -60,7 +60,7 @@ class WebIntegrationTest extends IntegrationTestBase {
                 .andExpect(status().isOk())
                 .andExpect(view().name("recipes/new"))
                 .andExpect(model().attributeHasFieldErrors("form", "name", "ingredients", "stepCountValid"))
-                .andExpect(content().string(containsString("名前を入力してください")));
+                .andExpect(content().string(containsString("Please enter a name")));
     }
 
     @Test
@@ -68,11 +68,11 @@ class WebIntegrationTest extends IntegrationTestBase {
     void createVersion() throws Exception {
         mvc.perform(recipeForm(post("/recipes/{id}/versions", recipeId).param("base", "1"), "40"))
                 .andExpect(redirectedUrl("/recipes/" + recipeId + "/versions/2"))
-                .andExpect(flash().attribute("message", "第2版を作成しました(下書き)"));
+                .andExpect(flash().attribute("message", "Created v2 (draft)"));
         mvc.perform(recipeForm(post("/recipes/{id}/versions", recipeId).param("base", "2"), "40"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("versions/form"))
-                .andExpect(content().string(containsString("派生元の版から変更がありません")));
+                .andExpect(content().string(containsString("Nothing changed from the base version")));
     }
 
     @Test
@@ -93,10 +93,10 @@ class WebIntegrationTest extends IntegrationTestBase {
     void finalizeVersion() throws Exception {
         mvc.perform(post("/recipes/{id}/versions/1/finalize", recipeId))
                 .andExpect(redirectedUrl("/recipes/" + recipeId + "/versions/1"))
-                .andExpect(flash().attribute("message", "第1版を決定版にしました"));
+                .andExpect(flash().attribute("message", "v1 is now the final version"));
         mvc.perform(post("/recipes/{id}/versions/1/finalize", recipeId))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("すでに決定版です")));
+                .andExpect(content().string(containsString("v1 is already the final version.")));
     }
 
     @Test
@@ -111,7 +111,7 @@ class WebIntegrationTest extends IntegrationTestBase {
     @DisplayName("IT-WEB-07: 評価推移 API は JSON を返す。存在しないレシピは ProblemDetail の 404")
     void ratingTrendApi() throws Exception {
         mvc.perform(post("/recipes/{id}/versions/1/logs", recipeId).param("cookedOn", "2026-01-01").param("rating", "4"))
-                .andExpect(flash().attribute("message", "調理ログを登録しました(第1版を試作中にしました)"));
+                .andExpect(flash().attribute("message", "Cooking log added (v1 moved to Trial)"));
         mvc.perform(get("/api/recipes/{id}/rating-trend", recipeId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].versionNo").value(1))
@@ -119,7 +119,7 @@ class WebIntegrationTest extends IntegrationTestBase {
                 .andExpect(jsonPath("$[0].status").value("TRIAL"));
         mvc.perform(get("/api/recipes/999999/rating-trend"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.detail").value(containsString("レシピが見つかりません")));
+                .andExpect(jsonPath("$.detail").value("Recipe not found (id=999999)"));
     }
 
     @Test

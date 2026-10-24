@@ -39,7 +39,7 @@ class DomainTest {
         assertThat(new IngredientLine("a", new BigDecimal("120.00"), "g", null).amountLabel()).isEqualTo("120 g");
         assertThat(new IngredientLine("a", new BigDecimal("1.50"), "大さじ", null).amountLabel()).isEqualTo("1.5 大さじ");
         assertThat(new IngredientLine("a", null, null, "少々").amountLabel()).isEqualTo("少々");
-        assertThat(new IngredientLine("a", BigDecimal.ONE, "個", "室温").amountLabel()).isEqualTo("1 個(室温)");
+        assertThat(new IngredientLine("a", BigDecimal.ONE, "個", "室温").amountLabel()).isEqualTo("1 個 (室温)");
         assertThat(new IngredientLine("a", null, null, null).amountLabel()).isEqualTo("—");
     }
 
@@ -74,7 +74,8 @@ class DomainTest {
     void cannotStartTrialTwice() {
         RecipeVersion v = newVersion();
         v.startTrial();
-        assertThatThrownBy(v::startTrial).isInstanceOf(BusinessRuleException.class).hasMessageContaining("試作中");
+        // 例外は文言ではなくメッセージキーを持つ(画面表示時に利用者の言語へ変換する)
+        assertThatThrownBy(v::startTrial).isInstanceOf(BusinessRuleException.class).hasMessage("error.cannotStartTrial");
     }
 
     @Test
@@ -82,7 +83,7 @@ class DomainTest {
     void cannotFinalizeTwice() {
         RecipeVersion v = newVersion();
         v.markFinal();
-        assertThatThrownBy(v::markFinal).isInstanceOf(BusinessRuleException.class);
+        assertThatThrownBy(v::markFinal).isInstanceOf(BusinessRuleException.class).hasMessage("error.alreadyFinal");
     }
 
     @Test

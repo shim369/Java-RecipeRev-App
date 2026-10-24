@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<html xmlns:th="http://www.thymeleaf.org">
 <body>
 <!--/*
   材料・手順・変更メモの入力欄(SCR-02 と SCR-05 で共通)。
@@ -8,54 +8,57 @@
 */-->
 <th:block th:fragment="editor">
     <fieldset class="field">
-        <legend>材料 <span class="required">必須</span></legend>
-        <p class="hint">分量は数値で入力します。「少々」などは分量を空欄にしてメモに書いてください(傾向分析では数値の行だけを使います)。</p>
+        <legend><th:block th:text="#{ingredients.legend}">Ingredients</th:block> <span class="required" th:text="#{common.required}">Required</span></legend>
+        <p class="hint" th:text="#{ingredients.hint}"></p>
         <p class="field-error" th:if="${#fields.hasErrors('ingredients')}" th:errors="*{ingredients}"></p>
         <p class="field-error" th:if="${#fields.hasErrors('ingredientNamesUnique')}" th:errors="*{ingredientNamesUnique}"></p>
         <table class="ingredient-table" data-ingredient-table>
             <thead>
-            <tr><th>材料名</th><th>分量</th><th>単位</th><th>メモ</th><th></th></tr>
+            <tr>
+                <th th:text="#{ingredients.col.name}">Name</th><th th:text="#{ingredients.col.amount}">Amount</th>
+                <th th:text="#{ingredients.col.unit}">Unit</th><th th:text="#{ingredients.col.note}">Note</th><th></th>
+            </tr>
             </thead>
             <tbody>
             <tr th:each="ing, stat : *{ingredients}" data-ingredient-row>
                 <td>
-                    <input type="text" th:field="*{ingredients[__${stat.index}__].name}" maxlength="50" placeholder="砂糖" aria-label="材料名">
+                    <input type="text" th:field="*{ingredients[__${stat.index}__].name}" maxlength="50" th:placeholder="#{ingredients.placeholder.name}" th:attr="aria-label=#{ingredients.col.name}">
                     <p class="field-error" th:if="${#fields.hasErrors('ingredients[__${stat.index}__].name')}" th:errors="*{ingredients[__${stat.index}__].name}"></p>
                 </td>
                 <td>
-                    <input type="number" th:field="*{ingredients[__${stat.index}__].amount}" step="0.01" min="0" max="99999.99" class="input-amount" placeholder="分量" aria-label="分量">
+                    <input type="number" th:field="*{ingredients[__${stat.index}__].amount}" step="0.01" min="0" max="99999.99" class="input-amount" th:placeholder="#{ingredients.col.amount}" th:attr="aria-label=#{ingredients.col.amount}">
                     <p class="field-error" th:if="${#fields.hasErrors('ingredients[__${stat.index}__].amount')}" th:errors="*{ingredients[__${stat.index}__].amount}"></p>
                 </td>
-                <td><input type="text" th:field="*{ingredients[__${stat.index}__].unit}" maxlength="20" placeholder="g" class="input-unit" aria-label="単位"></td>
-                <td><input type="text" th:field="*{ingredients[__${stat.index}__].note}" maxlength="100" placeholder="少々 など" aria-label="メモ"></td>
-                <td><button type="button" class="btn btn-small btn-ghost" data-remove-row>削除</button></td>
+                <td><input type="text" th:field="*{ingredients[__${stat.index}__].unit}" maxlength="20" class="input-unit" th:placeholder="#{ingredients.placeholder.unit}" th:attr="aria-label=#{ingredients.col.unit}"></td>
+                <td><input type="text" th:field="*{ingredients[__${stat.index}__].note}" maxlength="100" th:placeholder="#{ingredients.placeholder.note}" th:attr="aria-label=#{ingredients.col.note}"></td>
+                <td><button type="button" class="btn btn-small btn-ghost" data-remove-row th:text="#{ingredients.removeRow}">Remove</button></td>
             </tr>
             </tbody>
         </table>
         <!--/* JS で複製する空の行。name の __INDEX__ を連番に置き換えて使う */-->
         <template data-ingredient-template>
             <tr data-ingredient-row>
-                <td><input type="text" name="ingredients[__INDEX__].name" maxlength="50" placeholder="砂糖" aria-label="材料名"></td>
-                <td><input type="number" name="ingredients[__INDEX__].amount" step="0.01" min="0" max="99999.99" class="input-amount" placeholder="分量" aria-label="分量"></td>
-                <td><input type="text" name="ingredients[__INDEX__].unit" maxlength="20" placeholder="g" class="input-unit" aria-label="単位"></td>
-                <td><input type="text" name="ingredients[__INDEX__].note" maxlength="100" placeholder="少々 など" aria-label="メモ"></td>
-                <td><button type="button" class="btn btn-small btn-ghost" data-remove-row>削除</button></td>
+                <td><input type="text" name="ingredients[__INDEX__].name" maxlength="50" th:placeholder="#{ingredients.placeholder.name}" th:attr="aria-label=#{ingredients.col.name}"></td>
+                <td><input type="number" name="ingredients[__INDEX__].amount" step="0.01" min="0" max="99999.99" class="input-amount" th:placeholder="#{ingredients.col.amount}" th:attr="aria-label=#{ingredients.col.amount}"></td>
+                <td><input type="text" name="ingredients[__INDEX__].unit" maxlength="20" class="input-unit" th:placeholder="#{ingredients.placeholder.unit}" th:attr="aria-label=#{ingredients.col.unit}"></td>
+                <td><input type="text" name="ingredients[__INDEX__].note" maxlength="100" th:placeholder="#{ingredients.placeholder.note}" th:attr="aria-label=#{ingredients.col.note}"></td>
+                <td><button type="button" class="btn btn-small btn-ghost" data-remove-row th:text="#{ingredients.removeRow}">Remove</button></td>
             </tr>
         </template>
-        <button type="button" class="btn btn-small" data-add-row>+ 材料を追加</button>
+        <button type="button" class="btn btn-small" data-add-row th:text="#{ingredients.addRow}">+ Add ingredient</button>
     </fieldset>
 
     <div class="field">
-        <label for="steps">手順 <span class="required">必須</span></label>
-        <p class="hint">1行に1つの手順を書きます(空行は無視されます)。版の比較は行単位で行います。</p>
+        <label for="steps"><th:block th:text="#{steps.label}">Steps</th:block> <span class="required" th:text="#{common.required}">Required</span></label>
+        <p class="hint" th:text="#{steps.hint}"></p>
         <textarea id="steps" th:field="*{steps}" rows="8"></textarea>
         <p class="field-error" th:if="${#fields.hasErrors('stepCountValid')}" th:errors="*{stepCountValid}"></p>
         <p class="field-error" th:if="${#fields.hasErrors('stepLengthValid')}" th:errors="*{stepLengthValid}"></p>
     </div>
 
     <div class="field">
-        <label for="changeNote">変更メモ</label>
-        <input type="text" id="changeNote" th:field="*{changeNote}" maxlength="200" placeholder="例: 砂糖を10g増やした">
+        <label for="changeNote" th:text="#{changeNote.label}">Change note</label>
+        <input type="text" id="changeNote" th:field="*{changeNote}" maxlength="200" th:placeholder="#{changeNote.placeholder}">
         <p class="field-error" th:if="${#fields.hasErrors('changeNote')}" th:errors="*{changeNote}"></p>
     </div>
 </th:block>

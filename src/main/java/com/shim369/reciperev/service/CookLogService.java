@@ -72,7 +72,7 @@ public class CookLogService {
     @Transactional
     public int delete(long recipeId, long logId) {
         CookLog cookLog = cookLogRepository.findByIdAndVersionRecipeId(logId, recipeId)
-                .orElseThrow(() -> new NotFoundException("調理ログが見つかりません(id=" + logId + ")"));
+                .orElseThrow(() -> new NotFoundException("error.logNotFound", logId));
         int versionNo = cookLog.getVersion().getVersionNo();
         String photoPath = cookLog.getPhotoPath();
         cookLogRepository.delete(cookLog);

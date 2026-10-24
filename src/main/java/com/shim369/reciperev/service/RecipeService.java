@@ -57,7 +57,7 @@ public class RecipeService {
     @Transactional(readOnly = true)
     public Recipe getActive(long recipeId) {
         return recipeRepository.findByIdAndDeletedAtIsNull(recipeId)
-                .orElseThrow(() -> new NotFoundException("レシピが見つかりません(id=" + recipeId + ")"));
+                .orElseThrow(() -> new NotFoundException("error.recipeNotFound", recipeId));
     }
 
     /**
@@ -71,7 +71,7 @@ public class RecipeService {
                 .map(RecipeVersion::getVersionNo)
                 .orElseGet(() -> versionRepository.findMaxVersionNo(recipeId));
         RecipeVersion representative = versionRepository.findByRecipeIdAndVersionNo(recipeId, representativeNo)
-                .orElseThrow(() -> new IllegalStateException("版のないレシピです(id=" + recipeId + ")"));
+                .orElseThrow(() -> new IllegalStateException("Recipe has no versions: id=" + recipeId));
         return new RecipeDetail(recipe, representative, queryRepository.findVersionSummaries(recipeId));
     }
 

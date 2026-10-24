@@ -9,11 +9,11 @@ import jakarta.validation.constraints.Size;
  */
 public class RecipeCreateForm extends VersionContentForm {
 
-    @NotBlank(message = "名前を入力してください")
-    @Size(max = 100, message = "名前は100文字以内で入力してください")
+    @NotBlank(message = "{validation.name.required}")
+    @Size(max = 100, message = "{validation.name.size}")
     private String name;
 
-    @Size(max = 1000, message = "説明は1000文字以内で入力してください")
+    @Size(max = 1000, message = "{validation.description.size}")
     private String description;
 
     public String getName() {

@@ -29,6 +29,7 @@ This project is also a portfolio piece. It reproduces the typical shape of an in
 - **Cooking log**: record date, rating (1-5), taste notes, and one photo per attempt, linked to a version (a Draft version becomes Trial automatically)
 - **Rating chart**: average rating per version as a Chart.js line chart (Final highlighted, gaps for versions without logs)
 - **Trend analysis**: a Python script computes the correlation between ingredient quantities and ratings (for example, "versions with more sugar tend to score higher") and the result is shown in the UI
+- **English / Japanese UI**: English by default; the header button switches to Japanese (kept in a cookie). All screen text, validation and error messages live in `messages.properties` / `messages_ja.properties`
 
 | Diff view | Trend analysis |
 | --- | --- |
@@ -38,7 +39,7 @@ This project is also a portfolio piece. It reproduces the typical shape of an in
 
 | Area | Technology |
 | --- | --- |
-| Backend | Java 21, Spring Boot 3.5, Spring MVC, Spring Data JPA, JdbcClient, Bean Validation, Flyway, Maven |
+| Backend | Java 21, Spring Boot 3.5, Spring MVC, Spring Data JPA, JdbcClient, Bean Validation, Flyway, MessageSource (i18n), Maven |
 | Frontend | Thymeleaf, vanilla JavaScript, Chart.js 4, HTML/CSS |
 | Database | MySQL 8.4 (via Docker Compose) |
 | Analysis | Python 3.9+ with pandas (`analysis/`) |
@@ -61,6 +62,7 @@ Browser ──▶ controller ──▶ service ───────────
 - Business rules are enforced twice: in the domain/service code and by DB constraints
 - Input validation with Bean Validation; exceptions handled centrally via `@ControllerAdvice` (HTML) and `@RestControllerAdvice` (ProblemDetail JSON)
 - Python analysis is decoupled from the app: Java exports CSV, runs the script as a batch job, and reads JSON
+- i18n: `CookieLocaleResolver` (default English, ignores `Accept-Language`) + `LocaleChangeInterceptor` (`?lang=ja` / `?lang=en`). Exceptions carry a message key and arguments (`MessageSourceResolvable`) instead of text, so they are rendered in the viewer's language
 
 ## Database
 
@@ -102,9 +104,11 @@ docker compose up -d
 
 # Optional: start with sample data (2 recipes, 7 versions, cooking logs)
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
+# Sample data in Japanese
+./mvnw spring-boot:run -Dspring-boot.run.profiles=demo -Dspring-boot.run.arguments=--reciperev.demo.locale=ja
 ```
 
-Then open http://localhost:8080.
+Then open http://localhost:8080. Use the button at the top right to switch between English and 日本語.
 
 - Run the commands from the repository root: photos are saved to `uploads/` and analysis files to `analysis/output/` relative to it.
 - DB settings default to the values in `docker-compose.yml`. To change them, copy `.env.example` to `.env` (used by Docker Compose) and export the same variables for the app.
@@ -112,7 +116,7 @@ Then open http://localhost:8080.
 ### Run tests
 
 ```bash
-./mvnw test                                          # 71 Java tests (Docker required for Testcontainers)
+./mvnw test                                          # 77 Java tests (Docker required for Testcontainers)
 python3 -m unittest discover -s analysis/tests -v    # 10 Python tests
 ```
 
@@ -129,11 +133,12 @@ Java-RecipeRev-App/
 │   │   ├── repository/      # Spring Data JPA + JdbcClient SQL
 │   │   ├── domain/          # entities, value objects, diff model
 │   │   ├── dto/             # forms and read models
-│   │   ├── config/          # typed properties, demo data
+│   │   ├── config/          # typed properties, i18n (locale), demo data
 │   │   └── exception/
 │   ├── main/resources/
 │   │   ├── db/migration/    # Flyway SQL
 │   │   ├── templates/       # Thymeleaf
+│   │   ├── messages*.properties  # UI text (English default / Japanese)
 │   │   └── static/          # CSS, JavaScript
 │   └── test/java/           # unit + integration tests
 ├── docker-compose.yml
@@ -162,6 +167,7 @@ Java-RecipeRev-App/
 - [x] Phase 4: Cooking log (with photo), rating chart
 - [x] Phase 5: Python trend analysis integration
 - [x] Phase 6: Unit/integration tests, test specifications, documentation
+- [x] English-first UI with Japanese language switch
 
 Future ideas: login and two-step approval (requester / approver) with Spring Security, status change history, ingredient master for spelling variations, multi-variable regression.
 

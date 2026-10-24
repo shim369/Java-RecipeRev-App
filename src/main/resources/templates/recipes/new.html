@@ -1,23 +1,23 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ja">
-<head th:replace="~{fragments/layout :: head('レシピ新規登録')}"></head>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="en">
+<head th:replace="~{fragments/layout :: head(#{recipeNew.title})}"></head>
 <body>
 <header th:replace="~{fragments/layout :: header}"></header>
 <main class="container">
-    <nav class="breadcrumb"><a th:href="@{/recipes}">レシピ一覧</a> &rsaquo; 新規登録</nav>
-    <h1>レシピ新規登録</h1>
-    <p class="hint">登録すると「第1版(下書き)」が作られます。</p>
+    <nav class="breadcrumb"><a th:href="@{/recipes}" th:text="#{nav.recipes}">Recipes</a> &rsaquo; <span th:text="#{recipeNew.title}"></span></nav>
+    <h1 th:text="#{recipeNew.title}">New recipe</h1>
+    <p class="hint" th:text="#{recipeNew.hint}"></p>
 
     <form class="card form" th:action="@{/recipes}" th:object="${form}" method="post" novalidate>
-        <div class="form-errors" th:if="${#fields.hasAnyErrors()}" role="alert">入力内容を確認してください。</div>
+        <div class="form-errors" th:if="${#fields.hasAnyErrors()}" role="alert" th:text="#{common.formErrors}"></div>
 
         <div class="field">
-            <label for="name">名前 <span class="required">必須</span></label>
-            <input type="text" id="name" th:field="*{name}" maxlength="100" placeholder="例: 定番チキンカレー">
+            <label for="name"><th:block th:text="#{recipe.name}">Name</th:block> <span class="required" th:text="#{common.required}">Required</span></label>
+            <input type="text" id="name" th:field="*{name}" maxlength="100" th:placeholder="#{recipe.name.placeholder}">
             <p class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
         </div>
         <div class="field">
-            <label for="description">説明</label>
+            <label for="description" th:text="#{recipe.description}">Description</label>
             <textarea id="description" th:field="*{description}" rows="3" maxlength="1000"></textarea>
             <p class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></p>
         </div>
@@ -25,8 +25,8 @@
         <th:block th:replace="~{fragments/ingredients :: editor}"></th:block>
 
         <div class="actions">
-            <button type="submit" class="btn btn-primary">登録</button>
-            <a class="btn btn-ghost" th:href="@{/recipes}">キャンセル</a>
+            <button type="submit" class="btn btn-primary" th:text="#{recipeNew.submit}">Create</button>
+            <a class="btn btn-ghost" th:href="@{/recipes}" th:text="#{common.cancel}">Cancel</a>
         </div>
     </form>
 </main>

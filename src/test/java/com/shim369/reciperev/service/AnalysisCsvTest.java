@@ -27,14 +27,16 @@ class AnalysisCsvTest {
     }
 
     @Test
-    @DisplayName("UT-ANA-02: 相関の向きと強さから傾向の文章を作る")
+    @DisplayName("UT-ANA-02: 相関の向きと強さから傾向の文章のメッセージキーを決め、分量の範囲は末尾の0を落として表示する")
     void sentence() {
-        assertThat(new Correlation("砂糖", "g", 3, 0.9, "STRONG", "POSITIVE", 30, 50).sentence())
-                .isEqualTo("砂糖(g)が多い版ほど評価が高い傾向");
-        assertThat(new Correlation("塩", "", 3, -0.5, "MODERATE", "NEGATIVE", 1, 3).sentence())
-                .isEqualTo("塩が少ない版ほど評価が高い傾向");
-        assertThat(new Correlation("塩", "g", 3, 0.1, "WEAK", "POSITIVE", 1, 3).sentence())
-                .contains("はっきりした関係は見られません");
-        assertThat(new Correlation("塩", "g", 3, 0.1, "WEAK", "POSITIVE", 0, 12.5).amountRange()).isEqualTo("0 〜 12.5");
+        Correlation strongPositive = new Correlation("砂糖", "g", 3, 0.9, "STRONG", "POSITIVE", 30, 50);
+        assertThat(strongPositive.sentenceKey()).isEqualTo("positive");
+        assertThat(strongPositive.hasUnit()).isTrue();
+        Correlation moderateNegative = new Correlation("塩", "", 3, -0.5, "MODERATE", "NEGATIVE", 1, 3);
+        assertThat(moderateNegative.sentenceKey()).isEqualTo("negative");
+        assertThat(moderateNegative.hasUnit()).isFalse();
+        assertThat(new Correlation("塩", "g", 3, 0.1, "WEAK", "POSITIVE", 1, 3).sentenceKey()).isEqualTo("weak");
+        Correlation range = new Correlation("塩", "g", 3, 0.1, "WEAK", "POSITIVE", 0, 12.5);
+        assertThat(range.minLabel() + "-" + range.maxLabel()).isEqualTo("0-12.5");
     }
 }

@@ -60,6 +60,7 @@ RecipeRev は、この業務システムの型を「家庭の料理レシピ」�
 | DB | MySQL 8(docker compose で起動) |
 | 分析 | Python 3.9 以上 + pandas |
 | ブラウザ | Google Chrome / Safari / Firefox の最新版(PC幅を主対象、スマホ幅でも崩れない程度) |
+| 言語 | 英語(既定)・日本語 |
 
 ---
 
@@ -98,6 +99,7 @@ RecipeRev は、この業務システムの型を「家庭の料理レシピ」�
 | F-09 | 調理ログ登録・削除 | 版ごとに調理日・評価・味メモ・写真1枚を登録/削除 | 4 |
 | F-10 | 評価推移グラフ | 版ごとの平均評価を折れ線グラフ(Chart.js)で表示 | 4 |
 | F-11 | 傾向分析 | Pythonで「材料の分量と評価の相関」を算出し、結果JSONを画面に表示 | 5 |
+| F-12 | 言語切り替え | 画面は英語が既定。ヘッダーのボタンで日本語と英語を切り替え、選んだ言語を Cookie に保存する | 追加 |
 
 ### 4.2 機能詳細
 
@@ -223,6 +225,7 @@ stateDiagram-v2
 | エラー処理 | 例外は `@ControllerAdvice` でまとめて扱う。404(レシピ/版が見つからない)と400(入力・業務ルール違反)は利用者向けのメッセージを出し、それ以外は共通エラー画面を出す |
 | ログ | SLF4J + Logback を使う。版の作成・状態変更・分析の実行は INFO レベルで記録する(アプリ名は `RecipeRev` に統一) |
 | 保守性 | パッケージを controller / service / repository / domain / dto に分ける。差分計算はDBに依存しないクラスにして単体テストできるようにする |
+| 多言語対応 | 画面の文言・入力チェック・エラーメッセージは messages.properties(英語)/ messages_ja.properties(日本語)に置き、コードやテンプレートに直接書かない。ブラウザの言語設定には従わず、英語を既定とする |
 | 移植性 | DBは docker compose で起動し、`docker compose up` → `./mvnw spring-boot:run` で動くようにする |
 | テスト | 差分ロジックと業務ルールは JUnit 5 で単体テストする。リポジトリと承認フローは Testcontainers(MySQL)で結合テストする |
 

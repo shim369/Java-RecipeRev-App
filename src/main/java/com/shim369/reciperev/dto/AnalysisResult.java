@@ -20,43 +20,37 @@ public record AnalysisResult(
     public record Correlation(String ingredient, String unit, int samples, double r,
                               String strength, String direction, double minAmount, double maxAmount) {
 
-        public String strengthLabel() {
-            return switch (strength) {
-                case "STRONG" -> "強い";
-                case "MODERATE" -> "中程度";
-                default -> "弱い/なし";
-            };
+        /** 単位があるか(表示名を「材料 (単位)」にするかどうか) */
+        public boolean hasUnit() {
+            return unit != null && !unit.isEmpty();
         }
 
-        /** 例: 「30 〜 50」(末尾の 0 は表示しない) */
-        public String amountRange() {
-            return plain(minAmount) + " 〜 " + plain(maxAmount);
+        /**
+         * 傾向の文章のメッセージキーの末尾(positive / negative / weak)。
+         * 文章そのものは言語ごとに messages*.properties の analysis.sentence.* で持つ。
+         */
+        public String sentenceKey() {
+            if ("WEAK".equals(strength)) {
+                return "weak";
+            }
+            return "POSITIVE".equals(direction) ? "positive" : "negative";
+        }
+
+        /** 分量の最小値の表示(末尾の 0 は表示しない: 30.0 → 30)。範囲の書式は言語ごとに analysis.range で持つ */
+        public String minLabel() {
+            return plain(minAmount);
+        }
+
+        public String maxLabel() {
+            return plain(maxAmount);
         }
 
         private static String plain(double value) {
             return BigDecimal.valueOf(value).stripTrailingZeros().toPlainString();
         }
-
-        /** 例: 「砂糖(g)が多い版ほど評価が高い傾向」 */
-        public String sentence() {
-            String name = ingredient + (unit == null || unit.isEmpty() ? "" : "(" + unit + ")");
-            if ("WEAK".equals(strength)) {
-                return name + "の量と評価には、はっきりした関係は見られません";
-            }
-            return name + ("POSITIVE".equals(direction) ? "が多い版ほど評価が高い傾向" : "が少ない版ほど評価が高い傾向");
-        }
     }
 
     /** データ不足などで相関を計算しなかった材料 */
     public record Insufficient(String ingredient, String unit, int samples, String reason) {
-
-        public String reasonLabel() {
-            return switch (reason) {
-                case "NOT_ENOUGH_SAMPLES" -> "評価のある版が足りません";
-                case "NO_AMOUNT_VARIATION" -> "どの版でも分量が同じです";
-                case "NO_RATING_VARIATION" -> "どの版でも評価が同じです";
-                default -> reason;
-            };
-        }
     }
 }
