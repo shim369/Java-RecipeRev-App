@@ -14,6 +14,7 @@
         </div>
         <div class="actions">
             <a class="btn btn-primary" th:href="@{/recipes/{id}/versions/new(id=${recipe.id})}">最新版を元に編集</a>
+            <a class="btn" th:href="@{/recipes/{id}/analysis(id=${recipe.id})}">傾向分析</a>
             <a class="btn" th:href="@{/recipes/{id}/edit(id=${recipe.id})}">基本情報を編集</a>
             <form th:action="@{/recipes/{id}/delete(id=${recipe.id})}" method="post"
                   data-confirm="このレシピを削除しますか?(版と調理ログの記録は残ります)">
