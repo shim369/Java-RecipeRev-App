@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head th:replace="~{fragments/layout :: head('基本情報の編集')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container">
+    <nav class="breadcrumb">
+        <a th:href="@{/recipes}">レシピ一覧</a> &rsaquo;
+        <a th:href="@{/recipes/{id}(id=${recipe.id})}" th:text="${recipe.name}">カレー</a> &rsaquo; 基本情報の編集
+    </nav>
+    <h1>基本情報の編集</h1>
+    <p class="hint">材料・手順の変更は、版詳細の「この版を元に編集」から行います(新しい版が作られます)。</p>
+
+    <form class="card form" th:action="@{/recipes/{id}(id=${recipe.id})}" th:object="${form}" method="post" novalidate>
+        <div class="field">
+            <label for="name">名前 <span class="required">必須</span></label>
+            <input type="text" id="name" th:field="*{name}" maxlength="100">
+            <p class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+        </div>
+        <div class="field">
+            <label for="description">説明</label>
+            <textarea id="description" th:field="*{description}" rows="4" maxlength="1000"></textarea>
+            <p class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></p>
+        </div>
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">更新</button>
+            <a class="btn btn-ghost" th:href="@{/recipes/{id}(id=${recipe.id})}">キャンセル</a>
+        </div>
+    </form>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

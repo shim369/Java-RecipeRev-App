@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head th:replace="~{fragments/layout :: head('レシピ新規登録')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container">
+    <nav class="breadcrumb"><a th:href="@{/recipes}">レシピ一覧</a> &rsaquo; 新規登録</nav>
+    <h1>レシピ新規登録</h1>
+    <p class="hint">登録すると「第1版(下書き)」が作られます。</p>
+
+    <form class="card form" th:action="@{/recipes}" th:object="${form}" method="post" novalidate>
+        <div class="form-errors" th:if="${#fields.hasAnyErrors()}" role="alert">入力内容を確認してください。</div>
+
+        <div class="field">
+            <label for="name">名前 <span class="required">必須</span></label>
+            <input type="text" id="name" th:field="*{name}" maxlength="100" placeholder="例: 定番チキンカレー">
+            <p class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+        </div>
+        <div class="field">
+            <label for="description">説明</label>
+            <textarea id="description" th:field="*{description}" rows="3" maxlength="1000"></textarea>
+            <p class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></p>
+        </div>
+
+        <th:block th:replace="~{fragments/ingredients :: editor}"></th:block>
+
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">登録</button>
+            <a class="btn btn-ghost" th:href="@{/recipes}">キャンセル</a>
+        </div>
+    </form>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/ingredient-editor.js}"></script>
+</body>
+</html>

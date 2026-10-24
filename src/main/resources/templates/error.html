@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head th:replace="~{fragments/layout :: head(${errorTitle} ?: 'エラー')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container">
+    <section class="card error-card">
+        <!--/* @ControllerAdvice から来たときは errorTitle、Spring Boot 標準のエラー処理から来たときは status/error が入る */-->
+        <h1 th:text="${errorTitle} ?: (${status} ? ${status} + ' ' + ${error} : 'エラー')">エラー</h1>
+        <p th:text="${errorMessage} ?: '問題が発生しました。'">メッセージ</p>
+        <a class="btn" th:href="@{/recipes}">レシピ一覧へ</a>
+    </section>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

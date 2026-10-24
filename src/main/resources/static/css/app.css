@@ -1,0 +1,150 @@
+/* ===== RecipeRev ===== */
+/* 色はCSS変数にまとめ、差分色(追加/削除/変更)や状態バッジの色を1か所で調整できるようにする */
+:root {
+  --bg: #f7f5f2;
+  --surface: #ffffff;
+  --text: #2b2724;
+  --muted: #7a726b;
+  --border: #e3ddd6;
+  --primary: #c2562a;
+  --primary-dark: #9f4420;
+  --danger: #b3261e;
+
+  --added-bg: #e6f4ea;
+  --added-text: #1e6b34;
+  --removed-bg: #fce8e6;
+  --removed-text: #a50e0e;
+  --changed-bg: #fef7d6;
+  --changed-text: #7a5b00;
+
+  --badge-draft: #8a8a8a;
+  --badge-trial: #2f6db5;
+  --badge-final: #b8860b;
+
+  --radius: 8px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Segoe UI", sans-serif;
+  line-height: 1.6;
+}
+
+a { color: var(--primary); }
+a:hover { color: var(--primary-dark); }
+
+.container { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+main.container { padding-top: 24px; padding-bottom: 48px; }
+
+/* ----- header / footer ----- */
+.site-header { background: var(--surface); border-bottom: 1px solid var(--border); }
+.site-header .container { display: flex; align-items: baseline; gap: 12px; padding-top: 12px; padding-bottom: 12px; }
+.logo { font-size: 1.4rem; font-weight: 700; text-decoration: none; color: var(--text); letter-spacing: .02em; }
+.logo span { color: var(--primary); }
+.tagline { color: var(--muted); font-size: .85rem; }
+.site-footer { color: var(--muted); font-size: .8rem; padding: 24px 0; text-align: center; }
+
+/* ----- typography ----- */
+h1 { font-size: 1.6rem; margin: 0 0 8px; }
+h2 { font-size: 1.2rem; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+h3 { font-size: 1rem; margin: 0 0 8px; }
+.muted { color: var(--muted); }
+.hint { color: var(--muted); font-size: .85rem; margin: 4px 0 8px; }
+.description { white-space: pre-wrap; margin: 0; color: var(--muted); }
+.empty { padding: 32px; text-align: center; background: var(--surface); border-radius: var(--radius); color: var(--muted); }
+
+.page-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+.breadcrumb { font-size: .85rem; color: var(--muted); margin-bottom: 12px; }
+
+/* ----- card / layout ----- */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 720px) { .two-col { grid-template-columns: 1fr; } }
+.steps { margin: 0; padding-left: 1.4em; }
+.steps li { margin-bottom: 4px; }
+
+/* ----- buttons ----- */
+.btn {
+  display: inline-block; padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); text-decoration: none; font-size: .9rem; cursor: pointer; line-height: 1.4;
+}
+.btn:hover { border-color: var(--muted); color: var(--text); }
+.btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); color: #fff; }
+.btn-danger { color: var(--danger); border-color: var(--danger); }
+.btn-ghost { border-color: transparent; background: transparent; }
+.btn-small { padding: 4px 10px; font-size: .8rem; }
+.actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.actions form { margin: 0; }
+
+/* ----- tables ----- */
+.table { width: 100%; border-collapse: collapse; background: var(--surface); }
+.table th, .table td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+.table th { font-size: .8rem; color: var(--muted); font-weight: 600; }
+.table-compact td { padding: 4px 6px; }
+.num { text-align: right !important; white-space: nowrap; }
+.table-scroll { overflow-x: auto; }
+
+/* ----- forms ----- */
+.form .field, fieldset.field { margin-bottom: 18px; border: 0; padding: 0; }
+legend, .field > label { display: block; font-weight: 600; margin-bottom: 4px; }
+input[type=text], input[type=number], input[type=date], textarea, select {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font: inherit; background: #fff;
+}
+textarea { resize: vertical; }
+.required { font-size: .7rem; color: #fff; background: var(--primary); border-radius: 4px; padding: 1px 6px; margin-left: 4px; vertical-align: middle; }
+.field-error { color: var(--danger); font-size: .85rem; margin: 4px 0 0; }
+.form-errors { background: var(--removed-bg); color: var(--removed-text); padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; }
+.ingredient-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.ingredient-table th { font-size: .8rem; color: var(--muted); text-align: left; padding: 0 4px; }
+.ingredient-table td { padding: 4px; vertical-align: top; }
+.input-amount { max-width: 110px; }
+.input-unit { max-width: 90px; }
+
+/* ----- flash ----- */
+.flash { padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; }
+.flash-success { background: var(--added-bg); color: var(--added-text); }
+.flash-error { background: var(--removed-bg); color: var(--removed-text); }
+
+/* ----- status badge ----- */
+.badge { display: inline-block; font-size: .75rem; padding: 2px 8px; border-radius: 999px; color: #fff; font-weight: 600; white-space: nowrap; }
+.badge-draft { background: var(--badge-draft); }
+.badge-trial { background: var(--badge-trial); }
+.badge-final { background: var(--badge-final); }
+
+/* ----- diff(追加=緑 / 削除=赤 / 変更=黄。色だけに頼らず記号も付ける) ----- */
+.diff-added { background: var(--added-bg); color: var(--added-text); }
+.diff-removed { background: var(--removed-bg); color: var(--removed-text); }
+.diff-changed { background: var(--changed-bg); color: var(--changed-text); }
+.diff-mark { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 700; width: 1.5em; text-align: center; }
+.diff-removed .diff-old, .diff-changed .diff-old { text-decoration: line-through; opacity: .8; }
+.diff-summary { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.diff-summary span { padding: 2px 10px; border-radius: 999px; font-size: .85rem; }
+.diff-steps { list-style: none; margin: 0; padding: 0; }
+.diff-steps li { display: flex; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.compare-form { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+.compare-form label { font-size: .85rem; color: var(--muted); }
+.compare-form select { width: auto; min-width: 140px; }
+
+/* ----- cook logs ----- */
+.log-list { list-style: none; margin: 0; padding: 0; }
+.log-item { display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.log-item img { width: 120px; height: 90px; object-fit: cover; border-radius: 6px; }
+.log-body { flex: 1; }
+.log-memo { white-space: pre-wrap; margin: 4px 0 0; }
+.stars { color: var(--badge-final); letter-spacing: 2px; }
+.rating-input { display: flex; gap: 12px; flex-wrap: wrap; }
+.rating-input label { font-weight: normal; cursor: pointer; }
+.photo-preview { max-width: 240px; margin-top: 8px; border-radius: 6px; display: none; }
+
+/* ----- chart / analysis ----- */
+.chart-box { position: relative; height: 280px; }
+.strength-strong { font-weight: 700; }
+.note-box { background: var(--changed-bg); color: var(--changed-text); padding: 10px 14px; border-radius: 6px; font-size: .9rem; }
+pre.json { background: #2b2724; color: #f7f5f2; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: .8rem; }
+
+.error-card { text-align: center; padding: 48px 20px; }

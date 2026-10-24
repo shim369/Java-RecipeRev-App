@@ -1,0 +1,81 @@
+package com.shim369.reciperev.dto;
+
+import com.shim369.reciperev.domain.IngredientLine;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
+
+/**
+ * 材料1行の入力フォーム。HTML の name="ingredients[0].name" がこのフィールドにバインドされる。
+ * フォーム(dto)とエンティティ(domain)を分けるのは、画面の都合(空欄・文字列)をDBの型に持ち込まないため。
+ */
+public class IngredientForm {
+
+    @NotBlank(message = "材料名を入力してください")
+    @Size(max = 50, message = "材料名は50文字以内で入力してください")
+    private String name;
+
+    @DecimalMin(value = "0", message = "分量は0以上で入力してください")
+    @DecimalMax(value = "99999.99", message = "分量は99999.99以下で入力してください")
+    @Digits(integer = 5, fraction = 2, message = "分量は小数第2位までで入力してください")
+    private BigDecimal amount;
+
+    @Size(max = 20, message = "単位は20文字以内で入力してください")
+    private String unit;
+
+    @Size(max = 100, message = "材料メモは100文字以内で入力してください")
+    private String note;
+
+    public IngredientForm() {
+    }
+
+    public IngredientForm(String name, BigDecimal amount, String unit, String note) {
+        this.name = name;
+        this.amount = amount;
+        this.unit = unit;
+        this.note = note;
+    }
+
+    public static IngredientForm from(IngredientLine line) {
+        return new IngredientForm(line.name(), line.amount(), line.unit(), line.note());
+    }
+
+    public IngredientLine toLine() {
+        return new IngredientLine(name, amount, unit, note);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+}

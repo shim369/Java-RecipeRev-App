@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head th:replace="~{fragments/layout :: head('レシピ一覧')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="page-head">
+        <h1>レシピ一覧</h1>
+        <a class="btn btn-primary" th:href="@{/recipes/new}">+ 新規登録</a>
+    </div>
+
+    <p class="empty" th:if="${recipes.isEmpty()}">まだレシピがありません。「新規登録」から最初のレシピを作りましょう。</p>
+
+    <table class="table" th:unless="${recipes.isEmpty()}">
+        <thead>
+        <tr><th>レシピ名</th><th>説明</th><th class="num">最新版</th><th class="num">決定版</th><th class="num">平均評価</th><th>更新日時</th></tr>
+        </thead>
+        <tbody>
+        <!--/* th:text は HTML エスケープされる(XSS対策)。PHPの htmlspecialchars を毎回書くのと同じ効果 */-->
+        <tr th:each="r : ${recipes}">
+            <td><a th:href="@{/recipes/{id}(id=${r.id})}" th:text="${r.name}">カレー</a></td>
+            <td class="muted" th:text="${r.shortDescription()}">説明</td>
+            <td class="num" th:text="'第' + ${r.latestVersionNo} + '版'">第3版</td>
+            <td class="num">
+                <span th:if="${r.finalVersionNo}" class="badge badge-final" th:text="'第' + ${r.finalVersionNo} + '版'">第2版</span>
+                <span th:unless="${r.finalVersionNo}" class="muted">—</span>
+            </td>
+            <td class="num" th:text="${r.averageRating} ? ${#numbers.formatDecimal(r.averageRating, 1, 2)} : '—'">4.50</td>
+            <td th:text="${#temporals.format(r.updatedAt, 'yyyy-MM-dd HH:mm')}">2026-10-24 12:00</td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

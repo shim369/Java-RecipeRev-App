@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head th:replace="~{fragments/layout :: head(${detail.recipe.name})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container" th:with="recipe=${detail.recipe}, rep=${detail.representative}">
+    <nav class="breadcrumb"><a th:href="@{/recipes}">レシピ一覧</a> &rsaquo; <span th:text="${recipe.name}">カレー</span></nav>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="page-head">
+        <div>
+            <h1 th:text="${recipe.name}">カレー</h1>
+            <p class="description" th:if="${recipe.description}" th:text="${recipe.description}">説明</p>
+        </div>
+        <div class="actions">
+            <a class="btn" th:href="@{/recipes/{id}/edit(id=${recipe.id})}">基本情報を編集</a>
+            <form th:action="@{/recipes/{id}/delete(id=${recipe.id})}" method="post"
+                  data-confirm="このレシピを削除しますか?(版と調理ログの記録は残ります)">
+                <button type="submit" class="btn btn-danger">削除</button>
+            </form>
+        </div>
+    </div>
+
+    <section class="card">
+        <h2>
+            <span th:text="${rep.final} ? '決定版' : '最新版'">決定版</span>:
+            <span th:text="'第' + ${rep.versionNo} + '版'">第2版</span>
+            <span th:replace="~{fragments/layout :: status(${rep.status})}"></span>
+        </h2>
+        <div class="two-col">
+            <div>
+                <h3>材料</h3>
+                <table class="table table-compact">
+                    <tbody>
+                    <tr th:each="ing : ${rep.ingredients}">
+                        <td th:text="${ing.name}">砂糖</td>
+                        <td class="num" th:text="${ing.toLine().amountLabel()}">30 g</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <h3>手順</h3>
+                <ol class="steps">
+                    <li th:each="step : ${rep.stepList}" th:text="${step}">玉ねぎを炒める</li>
+                </ol>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>版履歴</h2>
+        <table class="table">
+            <thead>
+            <tr><th>版</th><th>状態</th><th>変更メモ</th><th>作成日時</th><th class="num">平均評価</th><th class="num">調理回数</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="v : ${detail.versions}">
+                <td th:text="'第' + ${v.versionNo} + '版'">第1版</td>
+                <td><span th:replace="~{fragments/layout :: status(${v.status})}"></span></td>
+                <td th:text="${v.changeNote} ?: '—'">砂糖を増やした</td>
+                <td th:text="${#temporals.format(v.createdAt, 'yyyy-MM-dd HH:mm')}">2026-10-24</td>
+                <td class="num" th:text="${v.averageRating} ? ${#numbers.formatDecimal(v.averageRating, 1, 2)} : '—'">4.00</td>
+                <td class="num" th:text="${v.logCount}">2</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/confirm.js}"></script>
+</body>
+</html>
