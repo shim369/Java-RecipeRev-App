@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """RecipeRev trend analysis: correlation between ingredient amounts and ratings.
 
-RecipeRev (Java) exports one CSV per recipe and runs this script as a batch job:
+RecipeRev (Java) exports one CSV per recipe and runs this script as a batch job.
+The Python environment (Python 3.15.1 + pandas) is managed by uv (analysis/pyproject.toml, uv.lock):
 
-    python3 analysis/analyze.py <input.csv> <output.json> --recipe-id <id>
+    uv run --project analysis python analysis/analyze.py <input.csv> <output.json> --recipe-id <id>
 
 Input CSV columns (one row = one version x one ingredient):
     version_no, ingredient, unit, amount, avg_rating
@@ -29,7 +30,7 @@ from typing import Any, Dict, List
 try:
     import pandas as pd
 except ImportError:  # pragma: no cover - depends on the environment
-    print("[RecipeRev] pandas is not installed. Run: pip install -r analysis/requirements.txt", file=sys.stderr)
+    print("[RecipeRev] pandas is not installed. Run: uv sync --project analysis", file=sys.stderr)
     sys.exit(2)
 
 MIN_SAMPLES = 3

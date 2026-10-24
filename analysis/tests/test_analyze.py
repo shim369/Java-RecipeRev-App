@@ -1,4 +1,4 @@
-"""Unit tests for analysis/analyze.py (run: python3 -m unittest discover -s analysis/tests)."""
+"""Unit tests for analysis/analyze.py (run: uv run --project analysis python -m unittest discover -s analysis/tests)."""
 
 import json
 import os

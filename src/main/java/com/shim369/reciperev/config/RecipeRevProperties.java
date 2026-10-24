@@ -1,6 +1,7 @@
 package com.shim369.reciperev.config;
 
 import java.nio.file.Path;
+import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -14,11 +15,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record RecipeRevProperties(Path uploadDir, Analysis analysis) {
 
     /**
-     * @param pythonCommand  python の実行コマンド(python3 など)
+     * @param command        Python を実行するコマンド(既定は uv run ... python)。この後ろにスクリプトと引数を付けて実行する
      * @param script         分析スクリプトのパス
      * @param workDir        入力CSV・出力JSONを置くディレクトリ
      * @param timeoutSeconds Python の実行を打ち切るまでの秒数
      */
-    public record Analysis(String pythonCommand, Path script, Path workDir, int timeoutSeconds) {
+    public record Analysis(List<String> command, Path script, Path workDir, int timeoutSeconds) {
     }
 }

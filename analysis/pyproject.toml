@@ -1,0 +1,13 @@
+[project]
+name = "reciperev-analysis"
+version = "1.0.0"
+description = "RecipeRev trend analysis: correlation between ingredient amounts and ratings"
+readme = "README.md"
+requires-python = ">=3.15"
+dependencies = [
+    "pandas>=3.0",
+]
+
+[tool.uv]
+# This directory is a script project, not a package to publish.
+package = false
