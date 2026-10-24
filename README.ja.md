@@ -111,7 +111,7 @@ Java-RecipeRev-App/
 - [x] Phase 2: プロジェクト雛形、Docker Compose、レシピCRUD
 - [x] Phase 3: バージョン管理、差分表示、承認フロー
 - [x] Phase 4: 調理ログ(写真含む)、評価推移グラフ
-- [ ] Phase 5: Python傾向分析の連携
+- [x] Phase 5: Python傾向分析の連携
 - [ ] Phase 6: 単体・結合テスト、テスト仕様書、ドキュメント整備
 
 ## ライセンス

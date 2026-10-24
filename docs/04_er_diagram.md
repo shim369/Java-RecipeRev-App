@@ -246,7 +246,7 @@ WITH rated AS (                        -- 調理ログがある版と、その�
    WHERE v.recipe_id = :recipeId
    GROUP BY v.id, v.version_no
 ),
-keys AS (                              -- 分析する「材料名 + 単位」の一覧
+ingredient_keys AS (                   -- 分析する「材料名 + 単位」の一覧(KEYS は MySQL の予約語なので避ける)
   SELECT DISTINCT i.name, i.unit
     FROM version_ingredients i
     JOIN rated r ON r.version_id = i.version_id
@@ -256,7 +256,7 @@ SELECT r.version_no, k.name, k.unit,
        COALESCE(i.amount, 0) AS amount,  -- その版に入っていない材料は0として扱う
        r.avg_rating
   FROM rated r
- CROSS JOIN keys k
+ CROSS JOIN ingredient_keys k
   LEFT JOIN version_ingredients i
          ON i.version_id = r.version_id
         AND i.name = k.name

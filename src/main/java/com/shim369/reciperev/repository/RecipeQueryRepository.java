@@ -1,6 +1,7 @@
 package com.shim369.reciperev.repository;
 
 import com.shim369.reciperev.domain.ChangeType;
+import com.shim369.reciperev.dto.AnalysisRow;
 import com.shim369.reciperev.dto.RecipeSummary;
 import com.shim369.reciperev.dto.VersionSummary;
 import com.shim369.reciperev.domain.VersionStatus;
@@ -109,5 +110,51 @@ public class RecipeQueryRepository {
     }
 
     public record IngredientDiffRow(String name, ChangeType type) {
+    }
+
+    /**
+     * 傾向分析の入力(版 × 材料の表)。04_er_diagram.md 5.3。
+     * <ul>
+     *   <li>rated: 調理ログがある版と、その平均評価</li>
+     *   <li>ingredient_keys: 分析対象の「材料名 + 単位」の一覧</li>
+     *   <li>CROSS JOIN で全組み合わせを作り、その版に無い材料は分量 0 とする</li>
+     *   <li>材料はあるが分量が空欄(少々など)の行は除外する</li>
+     * </ul>
+     */
+    public List<AnalysisRow> findAnalysisRows(long recipeId) {
+        return jdbc.sql("""
+                WITH rated AS (
+                  SELECT v.id AS version_id, v.version_no, AVG(l.rating) AS avg_rating
+                    FROM recipe_versions v
+                    JOIN cook_logs l ON l.version_id = v.id
+                   WHERE v.recipe_id = :recipeId
+                   GROUP BY v.id, v.version_no
+                ),
+                ingredient_keys AS (
+                  SELECT DISTINCT i.name, i.unit
+                    FROM version_ingredients i
+                    JOIN rated r ON r.version_id = i.version_id
+                   WHERE i.amount IS NOT NULL
+                )
+                SELECT r.version_no, k.name, k.unit,
+                       COALESCE(i.amount, 0) AS amount,
+                       r.avg_rating
+                  FROM rated r
+                 CROSS JOIN ingredient_keys k
+                  LEFT JOIN version_ingredients i
+                         ON i.version_id = r.version_id
+                        AND i.name = k.name
+                        AND i.unit <=> k.unit
+                 WHERE i.id IS NULL OR i.amount IS NOT NULL
+                 ORDER BY k.name, k.unit, r.version_no
+                """)
+                .param("recipeId", recipeId)
+                .query((rs, i) -> new AnalysisRow(
+                        rs.getInt("version_no"),
+                        rs.getString("name"),
+                        rs.getString("unit"),
+                        rs.getBigDecimal("amount"),
+                        rs.getBigDecimal("avg_rating")))
+                .list();
     }
 }

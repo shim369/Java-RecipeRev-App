@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head th:replace="~{fragments/layout :: head(${recipe.name} + ' 傾向分析')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container">
+    <nav class="breadcrumb">
+        <a th:href="@{/recipes}">レシピ一覧</a> &rsaquo;
+        <a th:href="@{/recipes/{id}(id=${recipe.id})}" th:text="${recipe.name}">カレー</a> &rsaquo; 傾向分析
+    </nav>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="page-head">
+        <div>
+            <h1>傾向分析</h1>
+            <p class="hint">材料の分量と、その版の平均評価の相関(ピアソンの相関係数 r)を Python で計算します。</p>
+        </div>
+        <form th:action="@{/recipes/{id}/analysis(id=${recipe.id})}" method="post">
+            <button type="submit" class="btn btn-primary">分析を実行</button>
+        </form>
+    </div>
+
+    <p class="empty" th:unless="${result}">まだ分析していません。「分析を実行」を押してください(評価のある版が3つ以上あると相関を計算できます)。</p>
+
+    <th:block th:if="${result}">
+        <section class="card">
+            <p class="muted">
+                最終分析: <span th:text="${#temporals.format(result.generatedAt, 'yyyy-MM-dd HH:mm')}">2026-10-24</span>
+                / 分析に使った版: <strong th:text="${result.versionCount}">4</strong> 件
+                / 相関を計算する条件: 評価のある版が <span th:text="${result.minSamples}">3</span> 件以上
+            </p>
+            <h2>材料ごとの傾向</h2>
+            <p class="muted" th:if="${result.results.isEmpty()}">相関を計算できた材料はありません。</p>
+            <div class="table-scroll" th:unless="${result.results.isEmpty()}">
+                <table class="table">
+                    <thead>
+                    <tr><th>材料</th><th>単位</th><th class="num">相関係数 r</th><th>強さ</th><th>傾向</th><th class="num">分量の範囲</th><th class="num">版数</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="c : ${result.results}">
+                        <td th:text="${c.ingredient}">砂糖</td>
+                        <td th:text="${c.unit}">g</td>
+                        <td class="num" th:text="${#numbers.formatDecimal(c.r, 1, 3)}">0.870</td>
+                        <td th:classappend="${c.strength == 'STRONG'} ? 'strength-strong'" th:text="${c.strengthLabel()}">強い</td>
+                        <td th:text="${c.sentence()}">砂糖(g)が多い版ほど評価が高い傾向</td>
+                        <td class="num" th:text="${c.amountRange()}">30 〜 50</td>
+                        <td class="num" th:text="${c.samples}">4</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="card" th:unless="${result.insufficient.isEmpty()}">
+            <h2>計算できなかった材料</h2>
+            <table class="table table-compact">
+                <tbody>
+                <tr th:each="i : ${result.insufficient}">
+                    <td th:text="${i.ingredient} + (${i.unit} != '' ? '(' + ${i.unit} + ')' : '')">卵(個)</td>
+                    <td class="muted" th:text="${i.reasonLabel()}">どの版でも分量が同じです</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <p class="note-box">相関は「一緒に増減する傾向」を示すだけで、因果関係(その材料を増やせば必ずおいしくなること)を示すものではありません。版の数が少ないうちは偶然の影響も大きくなります。</p>
+
+        <details class="card">
+            <summary>結果JSON(analysis/analyze.py の出力)</summary>
+            <pre class="json" th:text="${rawJson}">{}</pre>
+        </details>
+    </th:block>
+
+    <a class="btn" th:href="@{/recipes/{id}(id=${recipe.id})}">戻る</a>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
