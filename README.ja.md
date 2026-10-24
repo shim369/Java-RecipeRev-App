@@ -42,7 +42,7 @@
 | バックエンド | Java 21, Spring Boot 3.5, Spring MVC, Spring Data JPA, JdbcClient, Bean Validation, Flyway, MessageSource(多言語対応), Maven |
 | フロントエンド | Thymeleaf, 素のJavaScript, Chart.js 4, HTML/CSS |
 | データベース | MySQL 8.4(Docker Compose) |
-| 分析 | Python 3.9以上 + pandas(`analysis/`) |
+| 分析 | Python 3.15.1 + pandas 3。[uv](https://docs.astral.sh/uv/) で管理(`analysis/pyproject.toml`、`uv.lock`) |
 | テスト | JUnit 5, AssertJ, Spring Boot Test, MockMvc, Testcontainers(MySQL), Python unittest |
 
 ## アーキテクチャ
@@ -61,7 +61,7 @@
 - トランザクション境界はservice層に配置。版番号は `SELECT ... FOR UPDATE` でロックしてから採番する
 - 業務ルールは、ドメイン/サービスのコードと DB の制約の2か所で守る
 - 入力検証はBean Validation。例外は `@ControllerAdvice`(HTML)と `@RestControllerAdvice`(ProblemDetail の JSON)で集約
-- Python分析はアプリから疎結合: Java が CSV を書き出し、スクリプトをバッチとして実行し、出力された JSON を読む
+- Python分析はアプリから疎結合: Java が CSV を書き出し、スクリプトを `uv run` でバッチとして実行し、出力された JSON を読む
 - 多言語対応: `CookieLocaleResolver`(既定は英語。ブラウザの `Accept-Language` は見ない)+ `LocaleChangeInterceptor`(`?lang=ja` / `?lang=en`)。例外は文言ではなく「メッセージキー + 引数」(`MessageSourceResolvable`)を持ち、表示する時点で利用者の言語に変換する
 
 ## データベース
@@ -87,7 +87,7 @@ ER図(Mermaid)・制約・版を比較するSQL(`FULL OUTER JOIN` を使わな�
 
 - JDK 21
 - Docker / Docker Compose
-- Python 3.9以上 + pandas(傾向分析を使う場合のみ): `python3 -m pip install -r analysis/requirements.txt`
+- [uv](https://docs.astral.sh/uv/)(傾向分析を使う場合のみ)。初めて分析を実行したときに、uv が `uv.lock` どおりに Python 3.15.1 と pandas を `analysis/.venv` に用意します。前もって用意する場合は `uv sync --project analysis`
 
 ### 起動
 
@@ -117,7 +117,7 @@ docker compose up -d
 
 ```bash
 ./mvnw test                                          # Java 77件(Testcontainers を使うため Docker が必要)
-python3 -m unittest discover -s analysis/tests -v    # Python 10件
+uv run --project analysis python -m unittest discover -s analysis/tests -v    # Python 10件
 ```
 
 ## ディレクトリ構成
@@ -125,7 +125,7 @@ python3 -m unittest discover -s analysis/tests -v    # Python 10件
 ```
 Java-RecipeRev-App/
 ├── docs/                    # 要件定義、画面一覧、画面遷移、ER図、テスト仕様書、スクリーンショット
-├── analysis/                # Pythonによる傾向分析(analyze.py、テスト、requirements.txt)
+├── analysis/                # Pythonによる傾向分析(uv プロジェクト: analyze.py、テスト、pyproject.toml、uv.lock)
 ├── src/
 │   ├── main/java/com/shim369/reciperev/
 │   │   ├── controller/      # MVC コントローラ、JSON API、例外ハンドラ
